@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: repairloop-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build:api
+    startCommand: node apps/api/dist/server.js
+    healthCheckPath: /live
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: AI_ENABLED
+        value: "true"
+      - key: DEMO_MODE
+        value: "true"
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: PAYPAL_API_BASE
+        value: https://api-m.sandbox.paypal.com
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
