@@ -296,8 +296,12 @@ export async function verifyPayPalWebhook(params: {
   headers: HeaderMap;
   rawBody: Buffer;
 }): Promise<boolean> {
-  const webhookId = env.PAYPAL_WEBHOOK_ID;
-  if (!webhookId) {
+  const webhookIds = (env.PAYPAL_WEBHOOK_ID ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  if (webhookIds.length === 0) {
     throw new PayPalError(
       "not_configured",
       "PAYPAL_WEBHOOK_ID is not configured"
@@ -324,16 +328,18 @@ export async function verifyPayPalWebhook(params: {
     return false;
   }
 
-  const message = `${transmissionId}|${transmissionTime}|${webhookId}|${crc32(
-    params.rawBody
-  )}`;
   const certificate = await getCertificate(certificateUrl);
+  const signature = Buffer.from(transmissionSignature, "base64");
+  const checksum = crc32(params.rawBody);
 
-  const verifier = crypto.createVerify("SHA256");
-  verifier.update(message);
+  for (const webhookId of webhookIds) {
+    const message = `${transmissionId}|${transmissionTime}|${webhookId}|${checksum}`;
+    const verifier = crypto.createVerify("SHA256");
+    verifier.update(message);
+    if (verifier.verify(certificate, signature)) {
+      return true;
+    }
+  }
 
-  return verifier.verify(
-    certificate,
-    Buffer.from(transmissionSignature, "base64")
-  );
+  return false;
 }
