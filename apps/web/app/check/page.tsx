@@ -1132,6 +1132,10 @@ export default function CheckPage() {
                       <li key={reason}>{REASON_LABELS[reason] ?? reason}</li>
                     ))}
                   </ul>
+                  <p className="hint">
+                    If you cannot confirm the match, ask a repair professional
+                    or the manufacturer before buying.
+                  </p>
                 </div>
               ) : null}
 
@@ -1329,6 +1333,11 @@ export default function CheckPage() {
                       </strong>
                     </div>
                   </div>
+
+                  <p className="hint">
+                    Compatibility is verified by the source-linked catalog.
+                    PayPal completes the payment; it does not verify the part.
+                  </p>
 
                   {receipt ? (
                     <div className="receipt-success">
