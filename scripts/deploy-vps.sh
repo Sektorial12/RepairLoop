@@ -21,7 +21,7 @@ rsync -az --delete \
   "${SOURCE_DIR}/" "${VPS_USER}@${VPS_HOST}:${REMOTE_DIR}/"
 
 ssh -i "${SSH_KEY}" "${VPS_USER}@${VPS_HOST}" \
-  "cd ${REMOTE_DIR} && npm ci && npm run build:api && sudo systemctl restart repairloop-api && sleep 1 && curl -fsS http://127.0.0.1:3002/health"
+  "cd ${REMOTE_DIR} && npm ci && npm run build:api && sudo systemctl restart repairloop-api && for i in \$(seq 1 15); do if curl -fsS --max-time 2 http://127.0.0.1:3002/health; then exit 0; fi; sleep 1; done; echo 'Health check failed'; exit 1"
 
 echo
 echo "Deploy complete."
