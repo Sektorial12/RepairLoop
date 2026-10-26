@@ -627,7 +627,8 @@ h3 {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   min-height: 2.85rem;
   border: 1px solid var(--line);
@@ -638,8 +639,14 @@ h3 {
   padding: 0.65rem 0.75rem;
 }
 
+.field textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.field textarea:focus {
   outline: 2px solid rgba(15, 118, 110, 0.35);
   outline-offset: 1px;
   border-color: var(--teal);

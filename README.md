@@ -4,7 +4,7 @@
 
 RepairLoop turns a laptop battery report or label photo into a source-verified replacement-part decision, then completes the purchase with PayPal. AI helps with messy input; a curated, source-linked catalog decides fitment, price, and availability. If RepairLoop cannot verify a match, it says so and disables checkout.
 
-**Status:** Phase 2 core flow complete (manual-first). The API, catalog matcher, VPS deployment, web shell, and the verified/no-match/safety check flow are in place. Vercel deployment is intentionally deferred to Phase 6; the development roadmap is maintained locally outside this repository.
+**Status:** Working prototype. The verified/no-match/safety battery check flow is implemented. PayPal Sandbox checkout is not connected yet; no fake paid state is shown.
 
 ## Why this exists
 
@@ -18,12 +18,11 @@ Dell lists three battery capacities for the Latitude 5400 — 42Wh, 51Wh, and 68
 
 ## Stack
 
-- **Web:** Next.js 16 on Vercel
-- **API:** Fastify 5 + TypeScript on an Ubuntu VPS at `/code/repairloop`
+- **Web:** Next.js 16 + React 19
+- **API:** Fastify 5 + TypeScript
 - **Database:** PostgreSQL 14 + Drizzle ORM
 - **AI:** Gemini 3.5 Flash-Lite (free tier), structured JSON, manual fallback
 - **Payments:** PayPal Orders v2 + JavaScript SDK v6, Sandbox only
-- **Proxy:** Caddy with automatic HTTPS
 - **Repo:** npm workspaces at the repository root
 
 ## Quick start
@@ -72,9 +71,7 @@ curl -sS http://127.0.0.1:3002/api/match \
 │   └── web/       # Next.js landing page and API status
 ├── packages/
 │   └── shared/    # shared TypeScript types
-├── scripts/       # deploy helpers
 ├── .env.example
-├── DEPLOY.md      # VPS + Vercel deployment notes
 ├── DATA_SOURCES.md
 ├── AI_USAGE.md
 ├── SECURITY.md

@@ -2,10 +2,10 @@
 
 ## Secrets
 
-- PayPal client ID/secret, Gemini API key, webhook ID, and database URL live in `/etc/repairloop/api.env` on the VPS, `chmod 600`, root-only.
+- PayPal client ID/secret, Gemini API key, webhook ID, and database URL live in a server-side secret store, never in the repository.
 - Never commit secrets, `.env` files, SSH keys, tokens, or service-tag/serial data.
 - The frontend may receive only public values (e.g., `NEXT_PUBLIC_API_BASE_URL`; PayPal client ID if the chosen v6 path requires it).
-- Rotate the PayPal Sandbox secret after judging because it was shared in a chat during development.
+- Rotate any credential that may have been exposed outside the secret store.
 
 ## Payments
 
@@ -22,8 +22,8 @@
 - Rate-limit AI, upload, match, and checkout endpoints.
 - Validate all request bodies with Zod.
 - Upload limits: images only, 5 MB, no executables; strip metadata where possible.
-- Bind the API to `127.0.0.1:3002`; Caddy terminates HTTPS.
-- Use `systemd` hardening: `NoNewPrivileges`, `PrivateTmp`, `ProtectSystem`, restricted `ReadWritePaths`.
+- Bind the API to localhost; terminate HTTPS at the reverse proxy.
+- Run the API with least privilege and process isolation.
 - Do not expose stack traces or secrets in error responses.
 - Log request metadata, not image contents or credentials.
 
@@ -37,4 +37,4 @@
 
 ## Disclosure
 
-If a security issue is found, document it in the submission’s limitations and fix it before the judging period. Never hide a known payment or data-handling issue.
+Document known limitations and fix security issues before publishing. Never hide a known payment or data-handling issue.

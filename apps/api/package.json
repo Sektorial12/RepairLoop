@@ -20,8 +20,9 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.0.0",
-    "drizzle-orm": "^0.45.4",
+    "@google/genai": "^2.31.0",
     "dotenv": "^17.0.0",
+    "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.7",
     "pg": "^8.16.0",
     "zod": "^4.6.7"

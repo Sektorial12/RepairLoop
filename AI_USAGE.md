@@ -43,7 +43,7 @@
 
 ## Evaluation
 
-The Phase 3 eval set will include 20–30 redacted battery-report/label images and 10 symptom descriptions. Metrics:
+The evaluation set includes 20–30 redacted battery-report/label images and 10 symptom descriptions. Metrics:
 
 - Top-1 exact extraction
 - Top-3 candidate extraction
@@ -51,7 +51,7 @@ The Phase 3 eval set will include 20–30 redacted battery-report/label images a
 - No-match correctness
 - Safety-flag recall
 
-Targets are documented in the local development roadmap. Results must be reproducible and honest. If targets are not met, manual entry becomes the primary path.
+Targets: top-1 exact ≥80%, top-3 ≥95%, zero unsupported fitment claims, no-match correctness ≥95%. Results must be reproducible and honest. If targets are not met, manual entry becomes the primary path.
 
 ## Privacy and free-tier terms
 

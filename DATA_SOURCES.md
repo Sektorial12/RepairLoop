@@ -19,9 +19,9 @@ RepairLoop uses a deliberately small, source-linked catalog. It does **not** cla
 | Dell battery health: replace if full charge capacity is below 40% of design; use `powercfg /batteryreport` | [Dell battery health](https://www.dell.com/support/contents/en-us/article/product-support/self-support-knowledgebase/battery-and-power/battery), [Dell powercfg](https://www.dell.com/support/kbdoc/en-us/000130117/how-to-generate-battery-report-using-the-powercfg-command) | Health guidance | Verified |
 | Some Latitude 5400 units report 68Wh `4GVMP` charging behavior after replacing a 42Wh battery; user report, not official guidance | [Dell community thread](https://www.dell.com/community/en/conversations/latitude/latitude-5400-ec-firmware-charging-issue-with-oem-68wh-battery/697f0cc10ea28a52ddeb8eb4) | Catalog note / caution | Unverified anecdote |
 
-## The user’s installed battery
+## Demo reference battery
 
-From a redacted Windows battery report:
+From a redacted demo battery report:
 
 | Field | Value |
 |---|---:|

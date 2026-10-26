@@ -81,6 +81,37 @@ type Payload = {
   symptomTags: string[];
 };
 
+type BatteryReportExtraction = {
+  model: string | null;
+  partNumber: string | null;
+  designCapacityMwh: number | null;
+  fullChargeCapacityMwh: number | null;
+  healthPct: number | null;
+  cycleCount: number | null;
+  confidence: number;
+  warnings: string[];
+};
+
+type LabelExtraction = {
+  brand: string | null;
+  model: string | null;
+  regulatoryModel: string | null;
+  serialPrefix: string | null;
+  partNumber: string | null;
+  capacityWh: number | null;
+  voltage: number | null;
+  confidence: number;
+  warnings: string[];
+};
+
+type SymptomExtraction = {
+  tags: string[];
+  clarifyingQuestion: string | null;
+  safetyFlag: boolean;
+  safetyReason: string | null;
+  confidence: number;
+};
+
 const DEMO: Payload = {
   modelId: "dell-latitude-5400",
   installedPartNumber: "X77XY",
@@ -163,12 +194,23 @@ export default function CheckPage() {
     "battery_runtime_short"
   ]);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [labelFileName, setLabelFileName] = useState<string | null>(null);
   const [result, setResult] = useState<MatchResult | null>(null);
   const [selectedOption, setSelectedOption] = useState<MatchOption | null>(
     null
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState<
+    null | "report" | "label" | "symptoms"
+  >(null);
+  const [aiMessage, setAiMessage] = useState<string | null>(null);
+  const [aiWarnings, setAiWarnings] = useState<string[]>([]);
+  const [aiConfidence, setAiConfidence] = useState<number | null>(null);
+  const [symptomText, setSymptomText] = useState("");
+  const [clarifyingQuestion, setClarifyingQuestion] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -209,6 +251,65 @@ export default function CheckPage() {
   const selectedModel = models.find((model) => model.id === modelId);
   const sourceFor = (sourceId?: string): Source | undefined =>
     result?.sources?.find((source) => source.id === sourceId);
+
+  const normalizeValue = (value: string): string =>
+    value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const findModel = (query: string | null | undefined): Model | undefined => {
+    if (!query) return undefined;
+    const normalizedQuery = normalizeValue(query);
+    return models.find((model) =>
+      [model.model, ...model.aliases].some((candidate) => {
+        const normalized = normalizeValue(candidate);
+        return (
+          normalized === normalizedQuery ||
+          normalized.includes(normalizedQuery) ||
+          normalizedQuery.includes(normalized)
+        );
+      })
+    );
+  };
+
+  const fileToBase64 = (file: File): Promise<{
+    base64: string;
+    mimeType: string;
+  }> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result);
+        const match = result.match(/^data:([^;]+);base64,([\s\S]+)$/);
+        if (!match) {
+          reject(new Error("Could not read the image"));
+          return;
+        }
+        resolve({ base64: match[2], mimeType: match[1] });
+      };
+      reader.onerror = () => reject(new Error("Could not read the image"));
+      reader.readAsDataURL(file);
+    });
+
+  const apiErrorMessage = async (
+    response: Response,
+    fallback: string
+  ): Promise<string> => {
+    const body = (await response.json().catch(() => null)) as
+      | { error?: string; message?: string }
+      | null;
+
+    switch (body?.error) {
+      case "ai_not_configured":
+        return "AI extraction is unavailable; enter the values manually.";
+      case "ai_rate_limited":
+        return "AI is busy right now; try again or enter the values manually.";
+      case "ai_timeout":
+        return "AI timed out; enter the values manually.";
+      case "invalid_ai_output":
+        return "AI could not read the image reliably; enter the values manually.";
+      default:
+        return body?.message ?? fallback;
+    }
+  };
 
   const toggleSymptom = (tag: string) => {
     setSymptomTags((current) =>
@@ -267,7 +368,197 @@ export default function CheckPage() {
     setFullChargeCapacityMwh("46907");
     setSymptomTags(["battery_runtime_short"]);
     setFileName(null);
+    setLabelFileName(null);
+    setAiBusy(null);
+    setAiMessage(null);
+    setAiWarnings([]);
+    setAiConfidence(null);
+    setSymptomText("");
+    setClarifyingQuestion(null);
     await runMatch(DEMO);
+  };
+
+  const handleReportFile = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 6_000_000) {
+      setError("Image is too large. Use a screenshot under 6 MB.");
+      return;
+    }
+
+    setFileName(file.name);
+    setAiBusy("report");
+    setAiMessage(null);
+    setAiWarnings([]);
+    setAiConfidence(null);
+    setError(null);
+
+    try {
+      const image = await fileToBase64(file);
+      const response = await fetch(`${apiBaseUrl}/api/extract/battery-report`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: image.base64,
+          mimeType:
+            image.mimeType === "image/jpeg" || image.mimeType === "image/webp"
+              ? image.mimeType
+              : "image/png"
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await apiErrorMessage(response, "Could not extract the report")
+        );
+      }
+
+      const data = (await response.json()) as {
+        extraction: BatteryReportExtraction;
+      };
+      const extraction = data.extraction;
+
+      if (extraction.partNumber) {
+        setInstalledPartNumber(extraction.partNumber);
+      }
+      if (extraction.designCapacityMwh) {
+        setDesignCapacityMwh(String(extraction.designCapacityMwh));
+      }
+      if (extraction.fullChargeCapacityMwh) {
+        setFullChargeCapacityMwh(String(extraction.fullChargeCapacityMwh));
+      }
+
+      setAiConfidence(extraction.confidence);
+      setAiWarnings(extraction.warnings);
+      setAiMessage(
+        "Report extracted. Check every value before continuing."
+      );
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not extract the report"
+      );
+    } finally {
+      setAiBusy(null);
+    }
+  };
+
+  const handleLabelFile = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 6_000_000) {
+      setError("Image is too large. Use a photo under 6 MB.");
+      return;
+    }
+
+    setLabelFileName(file.name);
+    setAiBusy("label");
+    setAiMessage(null);
+    setAiWarnings([]);
+    setAiConfidence(null);
+    setError(null);
+
+    try {
+      const image = await fileToBase64(file);
+      const response = await fetch(`${apiBaseUrl}/api/extract/label`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: image.base64,
+          mimeType:
+            image.mimeType === "image/jpeg" || image.mimeType === "image/webp"
+              ? image.mimeType
+              : "image/png"
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await apiErrorMessage(response, "Could not extract the label")
+        );
+      }
+
+      const data = (await response.json()) as {
+        extraction: LabelExtraction;
+      };
+      const extraction = data.extraction;
+
+      if (extraction.partNumber) {
+        setInstalledPartNumber(extraction.partNumber);
+      }
+      const matchedModel = findModel(extraction.model);
+      if (matchedModel) {
+        setModelId(matchedModel.id);
+      }
+      if (extraction.capacityWh && !designCapacityMwh) {
+        setDesignCapacityMwh(String(Math.round(extraction.capacityWh * 1000)));
+      }
+
+      setAiConfidence(extraction.confidence);
+      setAiWarnings(extraction.warnings);
+      setAiMessage(
+        extraction.capacityWh && extraction.voltage
+          ? `Label suggests ${extraction.capacityWh}Wh / ${extraction.voltage}V. Confirm the part number before matching.`
+          : "Label extracted. Confirm the part number before matching."
+      );
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not extract the label"
+      );
+    } finally {
+      setAiBusy(null);
+    }
+  };
+
+  const handleParseSymptoms = async () => {
+    if (!symptomText.trim()) return;
+
+    setAiBusy("symptoms");
+    setError(null);
+    setClarifyingQuestion(null);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/symptoms/parse`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: symptomText })
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await apiErrorMessage(response, "Could not read the symptom")
+        );
+      }
+
+      const data = (await response.json()) as {
+        extraction: SymptomExtraction;
+      };
+      const extraction = data.extraction;
+      const merged = Array.from(
+        new Set([
+          ...symptomTags,
+          ...extraction.tags,
+          ...(extraction.safetyFlag ? ["battery_damaged"] : [])
+        ])
+      );
+
+      setSymptomTags(merged);
+      setClarifyingQuestion(extraction.clarifyingQuestion);
+      setAiConfidence(extraction.confidence);
+      setAiWarnings(
+        extraction.safetyReason ? [extraction.safetyReason] : []
+      );
+      setAiMessage("Symptoms mapped. Review the chips and safety state.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not read the symptom"
+      );
+    } finally {
+      setAiBusy(null);
+    }
   };
 
   const reset = () => {
@@ -281,6 +572,13 @@ export default function CheckPage() {
     setFullChargeCapacityMwh("46907");
     setSymptomTags(["battery_runtime_short"]);
     setFileName(null);
+    setLabelFileName(null);
+    setAiBusy(null);
+    setAiMessage(null);
+    setAiWarnings([]);
+    setAiConfidence(null);
+    setSymptomText("");
+    setClarifyingQuestion(null);
   };
 
   const chooseOption = (option: MatchOption) => {
@@ -352,8 +650,8 @@ export default function CheckPage() {
                 Find the exact replacement. Or stop.
               </h1>
               <p className="lede">
-                This phase is manual-first. Enter the battery report values or
-                the installed part number; the catalog does the fitment check.
+                Enter the battery report values or the installed part number;
+                the catalog does the fitment check.
               </p>
             </div>
             <div className="check-actions">
@@ -457,24 +755,75 @@ export default function CheckPage() {
                 <div>
                   <strong>Have a battery report screenshot?</strong>
                   <p>
-                    In Phase 2 we accept the file and keep the values manual.
-                    Gemini extraction arrives in Phase 3.
+                    Upload a report image to prefill the fields. Review every
+                    extracted value before matching.
                   </p>
                 </div>
                 <label className="upload-button">
                   Choose report image
                   <input
                     type="file"
-                    accept="image/png,image/jpeg,image/webp,application/pdf"
+                    accept="image/png,image/jpeg,image/webp"
                     onChange={(event) =>
-                      setFileName(event.target.files?.[0]?.name ?? null)
+                      void handleReportFile(event.target.files?.[0])
                     }
+                    disabled={aiBusy !== null}
                   />
                 </label>
                 {fileName ? (
                   <p className="status-note">Selected: {fileName}</p>
                 ) : null}
               </div>
+
+              <div className="upload-box">
+                <div>
+                  <strong>Have a battery or model label photo?</strong>
+                  <p>
+                    Upload a label image to prefill the part number and model.
+                    Review every value before matching.
+                  </p>
+                </div>
+                <label className="upload-button">
+                  Choose label image
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(event) =>
+                      void handleLabelFile(event.target.files?.[0])
+                    }
+                    disabled={aiBusy !== null}
+                  />
+                </label>
+                {labelFileName ? (
+                  <p className="status-note">Selected: {labelFileName}</p>
+                ) : null}
+              </div>
+
+              {aiBusy ? (
+                <div className="notice">
+                  {aiBusy === "report"
+                    ? "Reading the battery report…"
+                    : aiBusy === "label"
+                      ? "Reading the label…"
+                      : "Reading the symptom…"}
+                </div>
+              ) : null}
+              {aiMessage ? <p className="hint">{aiMessage}</p> : null}
+              {aiConfidence !== null ? (
+                <p className="hint">
+                  AI confidence: {Math.round(aiConfidence * 100)}%
+                </p>
+              ) : null}
+              {aiWarnings.length > 0 ? (
+                <div className="notice notice-warning">
+                  <strong>Check these:</strong>
+                  <ul className="reason-list">
+                    {aiWarnings.map((warning) => (
+                      <li key={warning}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
 
               <div className="field-grid">
                 <label className="field">
@@ -579,6 +928,46 @@ export default function CheckPage() {
                   ))}
                 </div>
               </fieldset>
+
+              <label className="field" style={{ marginTop: "1rem" }}>
+                <span>Describe the symptom (optional)</span>
+                <textarea
+                  value={symptomText}
+                  onChange={(event) => setSymptomText(event.target.value)}
+                  rows={3}
+                  placeholder="e.g. It runs for 30 seconds, then stops. The red light flashes."
+                />
+              </label>
+              <div className="button-row">
+                <button
+                  className="button ghost"
+                  type="button"
+                  onClick={() => void handleParseSymptoms()}
+                  disabled={aiBusy !== null || !symptomText.trim()}
+                >
+                  {aiBusy === "symptoms" ? "Reading…" : "Extract symptoms"}
+                </button>
+              </div>
+              {aiBusy === "symptoms" ? (
+                <div className="notice">Reading the symptom…</div>
+              ) : null}
+              {clarifyingQuestion ? (
+                <div className="notice">
+                  <strong>One question:</strong> {clarifyingQuestion}
+                </div>
+              ) : null}
+              {aiMessage ? <p className="hint">{aiMessage}</p> : null}
+              {aiWarnings.length > 0 ? (
+                <div className="notice notice-warning">
+                  <strong>Check these:</strong>
+                  <ul className="reason-list">
+                    {aiWarnings.map((warning) => (
+                      <li key={warning}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
               {symptomTags.includes("battery_damaged") ? (
                 <div className="notice notice-danger">
                   <strong>Safety stop.</strong> A swollen, leaking, or
@@ -889,14 +1278,14 @@ export default function CheckPage() {
                       </strong>
                     </div>
                     <p className="hint">
-                      Payment is not connected in Phase 2. Phase 4 will add the
-                      verified PayPal capture ID.
+                      Payment is not connected yet. The sandbox checkout will
+                      add a verified PayPal capture ID.
                     </p>
                   </div>
 
                   <div className="notice notice-warning">
                     <strong>Sandbox demo.</strong> No real charge. PayPal
-                    create/approve/capture is wired in Phase 4; this screen
+                    Sandbox checkout is not connected yet; this screen
                     intentionally has no fake “paid” state.
                   </div>
 
@@ -909,7 +1298,7 @@ export default function CheckPage() {
                       Back to result
                     </button>
                     <button className="button primary" type="button" disabled>
-                      PayPal checkout (Phase 4)
+                      PayPal checkout (coming soon)
                     </button>
                     <button
                       className="button ghost"
