@@ -35,7 +35,7 @@ type PayPalSession = {
 
 type PayPalSdk = {
   createInstance: (options: {
-    clientToken: string;
+    clientId: string;
     components: string[];
     pageType: string;
   }) => Promise<{
@@ -142,7 +142,7 @@ export function PayPalCheckout({
       }
 
       const config = (await configResponse.json()) as {
-        clientToken: string;
+        clientId: string;
         environment: "sandbox" | "live";
         currency: string;
       };
@@ -164,7 +164,7 @@ export function PayPalCheckout({
 
       const sdk = await withTimeout(
         window.paypal.createInstance({
-          clientToken: config.clientToken,
+          clientId: config.clientId,
           components: ["paypal-payments"],
           pageType: "checkout"
         }),
