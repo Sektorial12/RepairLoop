@@ -88,7 +88,14 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
     model: env.GEMINI_MODEL
   }));
 
-  app.post("/extract/battery-report", async (request, reply) => {
+  app.post(
+    "/extract/battery-report",
+    {
+      config: {
+        rateLimit: { max: 20, timeWindow: "1 minute" }
+      }
+    },
+    async (request, reply) => {
     if (!aiConfigured()) {
       return reply.code(503).send({ error: "ai_not_configured" });
     }
@@ -129,7 +136,14 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
-  app.post("/extract/label", async (request, reply) => {
+  app.post(
+    "/extract/label",
+    {
+      config: {
+        rateLimit: { max: 20, timeWindow: "1 minute" }
+      }
+    },
+    async (request, reply) => {
     if (!aiConfigured()) {
       return reply.code(503).send({ error: "ai_not_configured" });
     }
@@ -170,7 +184,14 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
-  app.post("/symptoms/parse", async (request, reply) => {
+  app.post(
+    "/symptoms/parse",
+    {
+      config: {
+        rateLimit: { max: 20, timeWindow: "1 minute" }
+      }
+    },
+    async (request, reply) => {
     if (!aiConfigured()) {
       return reply.code(503).send({ error: "ai_not_configured" });
     }

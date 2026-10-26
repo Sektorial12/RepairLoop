@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import type { FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import { corsOrigins, env, serviceVersion } from "./config.js";
 import { closeDb } from "./db/client.js";
 import { aiRoutes } from "./routes/ai.js";
@@ -23,6 +24,11 @@ await app.register(cors, {
   origin: corsOrigins,
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
+});
+
+await app.register(rateLimit, {
+  max: 120,
+  timeWindow: "1 minute"
 });
 
 // Keep the raw JSON body for PayPal webhook signature verification.

@@ -29,7 +29,12 @@ interface WebhookEvent {
 export async function webhookRoutes(
   app: FastifyInstance
 ): Promise<void> {
-  app.post("/webhooks/paypal", async (request, reply) => {
+  app.post(
+    "/webhooks/paypal",
+    {
+      config: { rateLimit: false }
+    },
+    async (request, reply) => {
     if (!db) {
       return reply.code(503).send({ error: "database_not_configured" });
     }

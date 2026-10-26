@@ -6,6 +6,13 @@ import { apiBaseUrl } from "../lib/api";
 import { PayPalCheckout } from "./PayPalCheckout";
 import type { OrderPayload, Receipt } from "./PayPalCheckout";
 
+type PaymentEvent = {
+  id: string;
+  eventType: string;
+  verified: boolean;
+  createdAt: string;
+};
+
 type Model = {
   id: string;
   brand: string;
@@ -204,6 +211,7 @@ export default function CheckPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
+  const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
   const [aiBusy, setAiBusy] = useState<
     null | "report" | "label" | "symptoms"
   >(null);
@@ -606,6 +614,38 @@ export default function CheckPage() {
         partId: selectedOption.part.id
       }
     : null;
+
+  useEffect(() => {
+    if (!receipt?.orderId) {
+      setPaymentEvents([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const response = await fetch(
+          `${apiBaseUrl}/api/orders/${encodeURIComponent(receipt.orderId)}`,
+          { cache: "no-store" }
+        );
+        if (!response.ok) return;
+        const data = (await response.json()) as {
+          events?: PaymentEvent[];
+        };
+        if (!cancelled) setPaymentEvents(data.events ?? []);
+      } catch {
+        // The receipt is already valid; the event log is supplementary.
+      }
+    };
+
+    void load();
+    const timers = [setTimeout(load, 2000), setTimeout(load, 5000)];
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, [receipt?.orderId]);
 
   const demoStarted = useRef(false);
 
@@ -1330,6 +1370,34 @@ export default function CheckPage() {
                             receipt.sourcePublisher
                           )}
                         </p>
+                      ) : null}
+                      {paymentEvents.length > 0 ? (
+                        <div className="event-log">
+                          <span className="meta-label">Payment events</span>
+                          <ul className="event-list">
+                            {paymentEvents.map((event) => (
+                              <li key={event.id}>
+                                <span
+                                  className={
+                                    event.verified
+                                      ? "badge-verified"
+                                      : "badge-excluded"
+                                  }
+                                >
+                                  {event.verified ? "verified" : "unverified"}
+                                </span>
+                                <span className="event-type">
+                                  {event.eventType}
+                                </span>
+                                <span className="hint">
+                                  {new Date(
+                                    event.createdAt
+                                  ).toLocaleTimeString()}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       ) : null}
                     </div>
                   ) : (
