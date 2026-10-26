@@ -1,14 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { loadCatalog } from "../catalog/load.js";
 import { matchCatalog } from "../catalog/matcher.js";
 import { db } from "../db/client.js";
-import {
-  compatibility,
-  deviceModels,
-  parts,
-  sources,
-  symptoms
-} from "../db/schema.js";
 
 const MatchBodySchema = z
   .object({
@@ -37,27 +31,9 @@ export async function matchRoutes(app: FastifyInstance): Promise<void> {
       });
     }
 
-    const [models, partRows, compatibilityRows, symptomRows, sourceRows] =
-      await Promise.all([
-        db.select().from(deviceModels),
-        db.select().from(parts),
-        db.select().from(compatibility),
-        db.select().from(symptoms),
-        db.select().from(sources)
-      ]);
+    const catalog = await loadCatalog();
+    const result = matchCatalog(catalog, parsed.data);
 
-    const result = matchCatalog(
-      {
-        sources: sourceRows,
-        models,
-        parts: partRows,
-        compatibility: compatibilityRows,
-        symptoms: symptomRows,
-        symptomRules: []
-      },
-      parsed.data
-    );
-
-    return { ...result, sources: sourceRows };
+    return { ...result, sources: catalog.sources };
   });
 }

@@ -4,7 +4,7 @@
 
 RepairLoop turns a laptop battery report or label photo into a source-verified replacement-part decision, then completes the purchase with PayPal. AI helps with messy input; a curated, source-linked catalog decides fitment, price, and availability. If RepairLoop cannot verify a match, it says so and disables checkout.
 
-**Status:** Working prototype. The verified/no-match/safety battery check flow is implemented. PayPal Sandbox checkout is not connected yet; no fake paid state is shown.
+**Status:** Working prototype. The verified/no-match/safety battery check flow, live Gemini extraction, and PayPal Sandbox checkout/capture are implemented. No fake paid state is shown.
 
 ## Why this exists
 
@@ -72,6 +72,7 @@ curl -sS http://127.0.0.1:3002/api/match \
 ├── packages/
 │   └── shared/    # shared TypeScript types
 ├── .env.example
+├── render.yaml
 ├── DATA_SOURCES.md
 ├── AI_USAGE.md
 ├── SECURITY.md

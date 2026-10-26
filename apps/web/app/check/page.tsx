@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { apiBaseUrl } from "../lib/api";
+import { PayPalCheckout } from "./PayPalCheckout";
+import type { OrderPayload, Receipt } from "./PayPalCheckout";
 
 type Model = {
   id: string;
@@ -201,6 +203,7 @@ export default function CheckPage() {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [aiBusy, setAiBusy] = useState<
     null | "report" | "label" | "symptoms"
   >(null);
@@ -375,6 +378,7 @@ export default function CheckPage() {
     setAiConfidence(null);
     setSymptomText("");
     setClarifyingQuestion(null);
+    setReceipt(null);
     await runMatch(DEMO);
   };
 
@@ -579,12 +583,25 @@ export default function CheckPage() {
     setAiConfidence(null);
     setSymptomText("");
     setClarifyingQuestion(null);
+    setReceipt(null);
   };
 
   const chooseOption = (option: MatchOption) => {
     setSelectedOption(option);
+    setReceipt(null);
     setStep(4);
   };
+
+  const orderPayload: OrderPayload | null = selectedOption
+    ? {
+        modelId,
+        installedPartNumber: installedPartNumber.trim() || undefined,
+        designCapacityMwh: Number(designCapacityMwh) || undefined,
+        fullChargeCapacityMwh: Number(fullChargeCapacityMwh) || undefined,
+        symptomTags,
+        partId: selectedOption.part.id
+      }
+    : null;
 
   const demoStarted = useRef(false);
 
@@ -1252,42 +1269,93 @@ export default function CheckPage() {
                     </div>
                   </div>
 
-                  <div className="receipt-preview">
-                    <div>
-                      <span className="meta-label">Receipt preview</span>
-                      <strong>Status: not paid</strong>
+                  {receipt ? (
+                    <div className="receipt-success">
+                      <div className="option-top">
+                        <span className="badge-verified">
+                          Payment complete — sandbox
+                        </span>
+                        <span className="option-part">
+                          {receipt.partNumber}
+                        </span>
+                      </div>
+                      <h3>Capture {receipt.captureId}</h3>
+                      <p className="option-reason">{receipt.partName}</p>
+                      <p className="option-price">
+                        {money(receipt.amount, receipt.currency)} ·{" "}
+                        {receipt.status}
+                      </p>
+                      <p className="hint">
+                        Order {receipt.orderId}
+                        {receipt.capturedAt
+                          ? ` · ${new Date(
+                              receipt.capturedAt
+                            ).toLocaleString()}`
+                          : ""}
+                      </p>
+                      {receipt.sourcePublisher ? (
+                        <p className="hint">
+                          Source:{" "}
+                          {receipt.sourceUrl ? (
+                            <a
+                              className="source-link"
+                              href={receipt.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {receipt.sourcePublisher} ↗
+                            </a>
+                          ) : (
+                            receipt.sourcePublisher
+                          )}
+                        </p>
+                      ) : null}
                     </div>
-                    <div>
-                      <span>Part</span>
-                      <strong>{selectedOption.part.partNumber}</strong>
-                    </div>
-                    <div>
-                      <span>Amount</span>
-                      <strong>
-                        {money(
-                          selectedOption.part.priceDemo,
-                          selectedOption.part.currency
-                        )}
-                      </strong>
-                    </div>
-                    <div>
-                      <span>Source</span>
-                      <strong>
-                        {sourceFor(selectedOption.compatibility.sourceId)
-                          ?.publisher ?? "unavailable"}
-                      </strong>
-                    </div>
-                    <p className="hint">
-                      Payment is not connected yet. The sandbox checkout will
-                      add a verified PayPal capture ID.
-                    </p>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="receipt-preview">
+                        <div>
+                          <span className="meta-label">Receipt preview</span>
+                          <strong>Status: not paid</strong>
+                        </div>
+                        <div>
+                          <span>Part</span>
+                          <strong>{selectedOption.part.partNumber}</strong>
+                        </div>
+                        <div>
+                          <span>Amount</span>
+                          <strong>
+                            {money(
+                              selectedOption.part.priceDemo,
+                              selectedOption.part.currency
+                            )}
+                          </strong>
+                        </div>
+                        <div>
+                          <span>Source</span>
+                          <strong>
+                            {sourceFor(selectedOption.compatibility.sourceId)
+                              ?.publisher ?? "unavailable"}
+                          </strong>
+                        </div>
+                        <p className="hint">
+                          Payment has not started. The sandbox capture ID will
+                          appear after PayPal confirms the capture.
+                        </p>
+                      </div>
 
-                  <div className="notice notice-warning">
-                    <strong>Sandbox demo.</strong> No real charge. PayPal
-                    Sandbox checkout is not connected yet; this screen
-                    intentionally has no fake “paid” state.
-                  </div>
+                      {orderPayload ? (
+                        <PayPalCheckout
+                          payload={orderPayload}
+                          amountLabel={money(
+                            selectedOption.part.priceDemo,
+                            selectedOption.part.currency
+                          )}
+                          onCaptured={setReceipt}
+                        />
+                      ) : null}
+                    </>
+                  )}
 
                   <div className="button-row">
                     <button
@@ -1296,9 +1364,6 @@ export default function CheckPage() {
                       onClick={() => setStep(3)}
                     >
                       Back to result
-                    </button>
-                    <button className="button primary" type="button" disabled>
-                      PayPal checkout (coming soon)
                     </button>
                     <button
                       className="button ghost"
