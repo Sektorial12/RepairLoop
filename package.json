@@ -1,0 +1,22 @@
+{
+  "name": "repairloop",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w @repairloop/api",
+    "dev:web": "npm run dev -w @repairloop/web",
+    "build": "npm run build -w @repairloop/api && npm run build -w @repairloop/web",
+    "build:api": "npm run build -w @repairloop/api",
+    "test": "npm run test -w @repairloop/api",
+    "typecheck": "npm run typecheck -w @repairloop/api && npm run typecheck -w @repairloop/web",
+    "db:generate": "npm run db:generate -w @repairloop/api",
+    "db:migrate": "npm run db:migrate -w @repairloop/api",
+    "db:push": "npm run db:push -w @repairloop/api",
+    "db:seed": "npm run db:seed -w @repairloop/api",
+    "catalog:check": "npm run catalog:check -w @repairloop/api"
+  }
+}

@@ -1,0 +1,108 @@
+import { describe, expect, it } from "vitest";
+import { catalogData } from "../src/catalog/data.js";
+import { matchCatalog } from "../src/catalog/matcher.js";
+
+describe("catalog matcher", () => {
+  it("matches the installed X77XY to the exact 68Wh 7.6V family", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "Latitude 5400",
+      installedPartNumber: "X77XY",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907,
+      symptomTags: ["battery_runtime_short"]
+    });
+
+    expect(result.status).toBe("verified_match");
+    expect(result.exact?.part.partNumber).toBe("4GVMP");
+    expect(result.lowerCapacity.map((option) => option.part.partNumber)).toEqual([
+      "R8D7N",
+      "1V1XF"
+    ]);
+    expect(result.excluded.map((option) => option.part.partNumber)).toContain(
+      "3HWPP"
+    );
+    expect(result.healthPct).toBeCloseTo(69, 0);
+    expect(result.healthNote).toContain("40%");
+  });
+
+  it("accepts a report-style battery name with a suffix", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "Dell Latitude 5400",
+      installedPartNumber: "DELL X77XY9A",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907
+    });
+
+    expect(result.status).toBe("verified_match");
+    expect(result.exact?.part.partNumber).toBe("4GVMP");
+  });
+
+  it("infers the 68Wh family from design capacity when the part number is absent", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "Latitude 5400",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907
+    });
+
+    expect(result.status).toBe("verified_match");
+    expect(result.exact?.part.partNumber).toBe("4GVMP");
+  });
+
+  it("marks the 68Wh 15.2V 3HWPP as unverified when it is the installed part", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "Latitude 5400",
+      installedPartNumber: "3HWPP",
+      designCapacityMwh: 68000
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("installed_part_unverified");
+  });
+
+  it("stops for a damaged-battery symptom", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "Latitude 5400",
+      installedPartNumber: "X77XY",
+      symptomTags: ["battery_damaged"]
+    });
+
+    expect(result.status).toBe("safety_stop");
+    expect(result.safety?.tag).toBe("battery_damaged");
+  });
+
+  it("returns no match for an unsupported model", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "MacBook Pro 14",
+      installedPartNumber: "X77XY"
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("unsupported_model");
+  });
+
+  it("returns no match for an unknown installed part", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "Latitude 5400",
+      installedPartNumber: "NOT-A-REAL-PART"
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("unknown_installed_part");
+  });
+
+  it("treats 42Wh as exact and does not offer higher capacities as lower options", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "Latitude 5400",
+      installedPartNumber: "1V1XF",
+      designCapacityMwh: 42000,
+      fullChargeCapacityMwh: 30000
+    });
+
+    expect(result.status).toBe("verified_match");
+    expect(result.exact?.part.partNumber).toBe("1V1XF");
+    expect(result.lowerCapacity).toHaveLength(0);
+    expect(result.excluded.map((option) => option.part.partNumber)).toContain(
+      "4GVMP"
+    );
+  });
+});
