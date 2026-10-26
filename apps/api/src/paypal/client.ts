@@ -176,6 +176,8 @@ export async function createPayPalOrder(params: {
   customId: string;
   referenceId: string;
   requestId: string;
+  returnUrl?: string;
+  cancelUrl?: string;
 }): Promise<PayPalOrderResponse> {
   const token = await getAccessToken();
   const description = params.description.slice(0, 127);
@@ -208,7 +210,9 @@ export async function createPayPalOrder(params: {
     ],
     application_context: {
       user_action: "PAY_NOW",
-      shipping_preference: "NO_SHIPPING"
+      shipping_preference: "NO_SHIPPING",
+      return_url: params.returnUrl,
+      cancel_url: params.cancelUrl
     }
   };
 

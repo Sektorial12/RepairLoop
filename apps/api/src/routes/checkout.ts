@@ -202,13 +202,18 @@ export async function checkoutRoutes(
 
       const amount = selected.part.priceDemo;
       const currency = selected.part.currency;
+      const origin = request.headers.origin;
+      const returnUrl = origin ? `${origin}/check?paypal=return` : undefined;
+      const cancelUrl = origin ? `${origin}/check?paypal=cancel` : undefined;
       const paypalOrder = await createPayPalOrder({
         amount,
         currency,
         description: `${selected.part.name} — ${selected.part.partNumber}`,
         customId: `${repairCase.id}|${selected.part.id}`,
         referenceId: selected.part.id,
-        requestId: `repairloop-${repairCase.id}`
+        requestId: `repairloop-${repairCase.id}`,
+        returnUrl,
+        cancelUrl
       });
 
       const [order] = await database
