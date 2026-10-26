@@ -51,7 +51,7 @@ The Phase 3 eval set will include 20–30 redacted battery-report/label images a
 - No-match correctness
 - Safety-flag recall
 
-Targets are documented in `roadmap.md`. Results must be reproducible and honest. If targets are not met, manual entry becomes the primary path.
+Targets are documented in the local development roadmap. Results must be reproducible and honest. If targets are not met, manual entry becomes the primary path.
 
 ## Privacy and free-tier terms
 
