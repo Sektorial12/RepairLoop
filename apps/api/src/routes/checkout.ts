@@ -349,4 +349,94 @@ export async function checkoutRoutes(
       return sendPayPalError(request, reply, error);
     }
   });
+
+  app.get("/orders/:orderId", async (request, reply) => {
+    if (!db) {
+      return reply.code(503).send({ error: "database_not_configured" });
+    }
+
+    const parsed = CaptureParamsSchema.safeParse(request.params);
+    if (!parsed.success) {
+      return reply.code(400).send({
+        error: "invalid_request",
+        issues: parsed.error.issues
+      });
+    }
+
+    const database = db;
+
+    const [order] = await database
+      .select()
+      .from(orders)
+      .where(eq(orders.paypalOrderId, parsed.data.orderId))
+      .limit(1);
+
+    if (!order) {
+      return reply.code(404).send({ error: "order_not_found" });
+    }
+
+    let part:
+      | {
+          partNumber: string;
+          name: string;
+          sourcePublisher: string | null;
+          sourceUrl: string | null;
+        }
+      | null = null;
+
+    if (order.repairCaseId) {
+      const [repairCase] = await database
+        .select()
+        .from(repairCases)
+        .where(eq(repairCases.id, order.repairCaseId))
+        .limit(1);
+
+      if (repairCase?.selectedPartId) {
+        const [selectedPart] = await database
+          .select()
+          .from(parts)
+          .where(eq(parts.id, repairCase.selectedPartId))
+          .limit(1);
+
+        if (selectedPart) {
+          const [source] = await database
+            .select()
+            .from(sources)
+            .where(eq(sources.id, selectedPart.sourceId))
+            .limit(1);
+          part = {
+            partNumber: selectedPart.partNumber,
+            name: selectedPart.name,
+            sourcePublisher: source?.publisher ?? null,
+            sourceUrl: source?.url ?? null
+          };
+        }
+      }
+    }
+
+    const events = await database
+      .select({
+        id: paymentEvents.id,
+        eventType: paymentEvents.eventType,
+        verified: paymentEvents.verified,
+        createdAt: paymentEvents.createdAt
+      })
+      .from(paymentEvents)
+      .where(eq(paymentEvents.orderId, order.id))
+      .orderBy(desc(paymentEvents.createdAt));
+
+    return {
+      order: {
+        id: order.id,
+        paypalOrderId: order.paypalOrderId,
+        captureId: order.paypalCaptureId,
+        amount: order.amount,
+        currency: order.currency,
+        status: order.status,
+        createdAt: order.createdAt
+      },
+      part,
+      events
+    };
+  });
 }
