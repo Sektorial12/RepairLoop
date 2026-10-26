@@ -8,13 +8,18 @@ import {
 export async function paypalRoutes(
   app: FastifyInstance
 ): Promise<void> {
-  app.get("/paypal/config", async (_request, reply) => {
+  app.get("/paypal/config", async (request, reply) => {
     if (!paypalConfigured()) {
       return reply.code(503).send({ error: "paypal_not_configured" });
     }
 
+    const origin = request.headers.origin;
+    if (!origin) {
+      return reply.code(400).send({ error: "origin_required" });
+    }
+
     try {
-      return getPayPalPublicConfig();
+      return await getPayPalPublicConfig([origin]);
     } catch (error) {
       if (error instanceof PayPalError && error.kind === "not_configured") {
         return reply.code(503).send({ error: "paypal_not_configured" });

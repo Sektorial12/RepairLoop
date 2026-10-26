@@ -35,7 +35,7 @@ type PayPalSession = {
 
 type PayPalSdk = {
   createInstance: (options: {
-    clientId: string;
+    clientToken: string;
     components: string[];
     pageType: string;
   }) => Promise<{
@@ -56,6 +56,19 @@ declare global {
   }
 }
 
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error(message)), timeoutMs);
+    })
+  ]);
+}
+
 function loadPayPalSdk(url: string): Promise<void> {
   if (window.paypal) return Promise.resolve();
 
@@ -64,20 +77,38 @@ function loadPayPalSdk(url: string): Promise<void> {
   );
   if (existing) {
     return new Promise((resolve, reject) => {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () =>
-        reject(new Error("PayPal SDK failed to load"))
-      );
+      const timer = setTimeout(() => {
+        reject(new Error("PayPal SDK load timed out"));
+      }, 20000);
+      const finish = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+      const fail = () => {
+        clearTimeout(timer);
+        reject(new Error("PayPal SDK failed to load"));
+      };
+      existing.addEventListener("load", finish, { once: true });
+      existing.addEventListener("error", fail, { once: true });
     });
   }
 
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
+    const timer = setTimeout(() => {
+      script.remove();
+      reject(new Error("PayPal SDK load timed out"));
+    }, 20000);
     script.src = url;
     script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () =>
+    script.onload = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    script.onerror = () => {
+      clearTimeout(timer);
       reject(new Error("PayPal SDK failed to load"));
+    };
     document.head.appendChild(script);
   });
 }
@@ -111,7 +142,7 @@ export function PayPalCheckout({
       }
 
       const config = (await configResponse.json()) as {
-        clientId: string;
+        clientToken: string;
         environment: "sandbox" | "live";
         currency: string;
       };
@@ -121,21 +152,33 @@ export function PayPalCheckout({
           ? "https://www.sandbox.paypal.com/web-sdk/v6/core"
           : "https://www.paypal.com/web-sdk/v6/core";
 
-      await loadPayPalSdk(sdkUrl);
+      await withTimeout(
+        loadPayPalSdk(sdkUrl),
+        22000,
+        "PayPal SDK load timed out"
+      );
 
       if (!window.paypal) {
         throw new Error("PayPal SDK is unavailable.");
       }
 
-      const sdk = await window.paypal.createInstance({
-        clientId: config.clientId,
-        components: ["paypal-payments"],
-        pageType: "checkout"
-      });
+      const sdk = await withTimeout(
+        window.paypal.createInstance({
+          clientToken: config.clientToken,
+          components: ["paypal-payments"],
+          pageType: "checkout"
+        }),
+        15000,
+        "PayPal initialization timed out"
+      );
 
-      const methods = await sdk.findEligibleMethods({
-        currencyCode: config.currency
-      });
+      const methods = await withTimeout(
+        sdk.findEligibleMethods({
+          currencyCode: config.currency
+        }),
+        10000,
+        "PayPal eligibility check timed out"
+      );
 
       if (!methods.isEligible("paypal")) {
         throw new Error("PayPal is not eligible in this browser.");

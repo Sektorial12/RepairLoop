@@ -331,7 +331,9 @@ export default function CheckPage() {
     ...overrides
   });
 
-  const runMatch = async (overrides?: Partial<Payload>) => {
+  const runMatch = async (
+    overrides?: Partial<Payload>
+  ): Promise<MatchResult | null> => {
     setLoading(true);
     setError(null);
 
@@ -355,10 +357,12 @@ export default function CheckPage() {
         data.status === "verified_match" && data.exact ? data.exact : null
       );
       setStep(3);
+      return data;
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Could not run the match"
       );
+      return null;
     } finally {
       setLoading(false);
     }
@@ -615,6 +619,23 @@ export default function CheckPage() {
 
     if (scenario === "1") {
       void loadDemo();
+      return;
+    }
+
+    if (scenario === "review") {
+      setModelId("dell-latitude-5400");
+      setInstalledPartNumber("X77XY");
+      setDesignCapacityMwh("68005");
+      setFullChargeCapacityMwh("46907");
+      setSymptomTags(["battery_runtime_short"]);
+      void (async () => {
+        const data = await runMatch(DEMO);
+        if (data?.exact) {
+          setSelectedOption(data.exact);
+          setReceipt(null);
+          setStep(4);
+        }
+      })();
       return;
     }
 

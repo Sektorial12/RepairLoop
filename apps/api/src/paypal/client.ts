@@ -17,6 +17,7 @@ export class PayPalError extends Error {
 
 export interface PayPalPublicConfig {
   clientId: string;
+  clientToken: string;
   environment: "sandbox" | "live";
   currency: "USD";
 }
@@ -65,16 +66,70 @@ export function paypalConfigured(): boolean {
   return Boolean(env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET);
 }
 
-export function getPayPalPublicConfig(): PayPalPublicConfig {
+export async function getPayPalPublicConfig(
+  domains: string[]
+): Promise<PayPalPublicConfig> {
   if (!paypalConfigured() || !env.PAYPAL_CLIENT_ID) {
     throw new PayPalError("not_configured", "PayPal is not configured");
   }
 
   return {
     clientId: env.PAYPAL_CLIENT_ID,
+    clientToken: await getPayPalClientToken(domains),
     environment: env.PAYPAL_API_BASE.includes("sandbox") ? "sandbox" : "live",
     currency: "USD"
   };
+}
+
+async function getPayPalClientToken(domains: string[]): Promise<string> {
+  if (!paypalConfigured()) {
+    throw new PayPalError("not_configured", "PayPal is not configured");
+  }
+
+  const credentials = Buffer.from(
+    `${env.PAYPAL_CLIENT_ID}:${env.PAYPAL_CLIENT_SECRET}`
+  ).toString("base64");
+  const body = new URLSearchParams({
+    grant_type: "client_credentials",
+    response_type: "client_token"
+  });
+  for (const domain of domains) {
+    body.append("domains[]", domain);
+  }
+
+  const response = await fetch(`${env.PAYPAL_API_BASE}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${credentials}`,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: body.toString()
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new PayPalError(
+      "upstream",
+      `PayPal client-token request failed (${response.status})`,
+      response.status
+    );
+  }
+
+  let json: { access_token?: string };
+  try {
+    json = JSON.parse(text) as { access_token?: string };
+  } catch {
+    throw new PayPalError(
+      "upstream",
+      "PayPal client-token response was invalid JSON"
+    );
+  }
+
+  if (!json.access_token) {
+    throw new PayPalError("upstream", "PayPal returned no client token");
+  }
+
+  return json.access_token;
 }
 
 async function getAccessToken(): Promise<string> {
