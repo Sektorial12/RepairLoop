@@ -1102,6 +1102,19 @@ h3 {
   justify-self: start;
 }
 
+.paypal-amount {
+  margin: 0;
+  font-weight: 800;
+}
+
+.paypal-button-container {
+  min-height: 45px;
+}
+
+.paypal-button-container iframe {
+  border-radius: 10px;
+}
+
 .receipt-success {
   border: 1px solid #b7ddd6;
   border-radius: 18px;

@@ -22,7 +22,7 @@ Dell lists three battery capacities for the Latitude 5400 — 42Wh, 51Wh, and 68
 - **API:** Fastify 5 + TypeScript
 - **Database:** PostgreSQL 14 + Drizzle ORM
 - **AI:** Gemini 3.5 Flash-Lite (free tier), structured JSON, manual fallback
-- **Payments:** PayPal Orders v2 + JavaScript SDK v6, Sandbox only
+- **Payments:** PayPal Orders v2 + JavaScript SDK (v5 Buttons), Sandbox only
 - **Repo:** npm workspaces at the repository root
 
 ## Quick start

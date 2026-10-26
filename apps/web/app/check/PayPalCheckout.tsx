@@ -26,28 +26,22 @@ export type Receipt = {
   capturedAt: string;
 };
 
-type PayPalSession = {
-  start: (
-    options: { presentationMode: "auto" },
-    order: Promise<{ orderId: string }>
-  ) => Promise<void>;
+type PayPalButtonsInstance = {
+  render: (element: HTMLElement) => Promise<void>;
+  isEligible?: () => boolean;
 };
 
 type PayPalSdk = {
-  createInstance: (options: {
-    clientId: string;
-    components: string[];
-    pageType: string;
-  }) => Promise<{
-    findEligibleMethods: (options: {
-      currencyCode: string;
-    }) => Promise<{ isEligible: (method: string) => boolean }>;
-    createPayPalOneTimePaymentSession: (options: {
-      onApprove: (data: { orderId: string }) => Promise<void>;
-      onCancel?: () => void;
-      onError?: (error: unknown) => void;
-    }) => PayPalSession;
-  }>;
+  Buttons: (options: {
+    style?: Record<string, string | number>;
+    createOrder: () => Promise<string>;
+    onApprove: (data: {
+      orderID?: string;
+      orderId?: string;
+    }) => Promise<void>;
+    onCancel?: () => void;
+    onError?: (error: unknown) => void;
+  }) => PayPalButtonsInstance;
 };
 
 declare global {
@@ -70,10 +64,10 @@ function withTimeout<T>(
 }
 
 function loadPayPalSdk(url: string): Promise<void> {
-  if (window.paypal) return Promise.resolve();
+  if (window.paypal?.Buttons) return Promise.resolve();
 
   const existing = document.querySelector<HTMLScriptElement>(
-    `script[src="${url}"]`
+    "script[data-paypal-sdk]"
   );
   if (existing) {
     return new Promise((resolve, reject) => {
@@ -101,6 +95,7 @@ function loadPayPalSdk(url: string): Promise<void> {
     }, 20000);
     script.src = url;
     script.async = true;
+    script.dataset.paypalSdk = "true";
     script.onload = () => {
       clearTimeout(timer);
       resolve();
@@ -123,10 +118,10 @@ export function PayPalCheckout({
   onCaptured: (receipt: Receipt) => void;
 }) {
   const [status, setStatus] = useState<
-    "loading" | "ready" | "paying" | "error"
+    "loading" | "ready" | "error"
   >("loading");
   const [error, setError] = useState<string | null>(null);
-  const sessionRef = useRef<PayPalSession | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const repairCaseIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -147,10 +142,11 @@ export function PayPalCheckout({
         currency: string;
       };
 
-      const sdkUrl =
-        config.environment === "sandbox"
-          ? "https://www.sandbox.paypal.com/web-sdk/v6/core"
-          : "https://www.paypal.com/web-sdk/v6/core";
+      const sdkUrl = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(
+        config.clientId
+      )}&currency=${encodeURIComponent(
+        config.currency
+      )}&intent=capture&components=buttons`;
 
       await withTimeout(
         loadPayPalSdk(sdkUrl),
@@ -158,34 +154,83 @@ export function PayPalCheckout({
         "PayPal SDK load timed out"
       );
 
-      if (!window.paypal) {
-        throw new Error("PayPal SDK is unavailable.");
+      if (!window.paypal?.Buttons) {
+        throw new Error("PayPal Buttons are unavailable.");
       }
 
-      const sdk = await withTimeout(
-        window.paypal.createInstance({
-          clientId: config.clientId,
-          components: ["paypal-payments"],
-          pageType: "checkout"
-        }),
-        15000,
-        "PayPal initialization timed out"
-      );
+      const createOrder = async (): Promise<string> => {
+        if (!repairCaseIdRef.current) {
+          const caseResponse = await fetch(
+            `${apiBaseUrl}/api/repair-cases`,
+            {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify(payload)
+            }
+          );
 
-      const methods = await withTimeout(
-        sdk.findEligibleMethods({
-          currencyCode: config.currency
-        }),
-        10000,
-        "PayPal eligibility check timed out"
-      );
+          if (!caseResponse.ok) {
+            const body = (await caseResponse.json().catch(() => null)) as
+              | { error?: string; message?: string }
+              | null;
+            throw new Error(
+              body?.message ??
+                body?.error ??
+                "Could not prepare the repair case."
+            );
+          }
 
-      if (!methods.isEligible("paypal")) {
-        throw new Error("PayPal is not eligible in this browser.");
-      }
+          const caseData = (await caseResponse.json()) as {
+            repairCaseId: string;
+          };
+          repairCaseIdRef.current = caseData.repairCaseId;
+        }
 
-      const session = sdk.createPayPalOneTimePaymentSession({
-        onApprove: async ({ orderId }) => {
+        const orderResponse = await fetch(
+          `${apiBaseUrl}/api/checkout/orders`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              repairCaseId: repairCaseIdRef.current
+            })
+          }
+        );
+
+        if (!orderResponse.ok) {
+          const body = (await orderResponse.json().catch(() => null)) as
+            | { error?: string; message?: string }
+            | null;
+          throw new Error(
+            body?.message ??
+              body?.error ??
+              "Could not create the PayPal order."
+          );
+        }
+
+        const orderData = (await orderResponse.json()) as {
+          orderId: string;
+        };
+        return orderData.orderId;
+      };
+
+      const buttons = window.paypal.Buttons({
+        style: {
+          layout: "vertical",
+          color: "gold",
+          shape: "rect",
+          label: "paypal",
+          height: 45
+        },
+        createOrder,
+        onApprove: async (data) => {
+          const orderId = data.orderID ?? data.orderId;
+          if (!orderId) {
+            setStatus("ready");
+            setError("PayPal returned no order ID.");
+            return;
+          }
+
           try {
             const response = await fetch(
               `${apiBaseUrl}/api/checkout/orders/${encodeURIComponent(
@@ -226,10 +271,9 @@ export function PayPalCheckout({
         }
       });
 
-      if (!cancelled) {
-        sessionRef.current = session;
-        setStatus("ready");
-      }
+      if (cancelled || !containerRef.current) return;
+      await buttons.render(containerRef.current);
+      if (!cancelled) setStatus("ready");
     };
 
     void setup().catch((caught) => {
@@ -247,88 +291,14 @@ export function PayPalCheckout({
     };
   }, []);
 
-  const createOrder = async (): Promise<{ orderId: string }> => {
-    if (!repairCaseIdRef.current) {
-      const caseResponse = await fetch(`${apiBaseUrl}/api/repair-cases`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      if (!caseResponse.ok) {
-        const body = (await caseResponse.json().catch(() => null)) as
-          | { error?: string; message?: string }
-          | null;
-        throw new Error(
-          body?.message ??
-            body?.error ??
-            "Could not prepare the repair case."
-        );
-      }
-
-      const caseData = (await caseResponse.json()) as {
-        repairCaseId: string;
-      };
-      repairCaseIdRef.current = caseData.repairCaseId;
-    }
-
-    const orderResponse = await fetch(
-      `${apiBaseUrl}/api/checkout/orders`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ repairCaseId: repairCaseIdRef.current })
-      }
-    );
-
-    if (!orderResponse.ok) {
-      const body = (await orderResponse.json().catch(() => null)) as
-        | { error?: string; message?: string }
-        | null;
-      throw new Error(
-        body?.message ??
-          body?.error ??
-          "Could not create the PayPal order."
-      );
-    }
-
-    const orderData = (await orderResponse.json()) as { orderId: string };
-    return { orderId: orderData.orderId };
-  };
-
-  const handlePay = async () => {
-    const session = sessionRef.current;
-    if (!session) return;
-
-    setStatus("paying");
-    setError(null);
-
-    try {
-      await session.start({ presentationMode: "auto" }, createOrder());
-    } catch (caught) {
-      setStatus("ready");
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Could not open PayPal. Try again."
-      );
-    }
-  };
-
   return (
     <div className="paypal-box">
-      <button
-        className="button primary"
-        type="button"
-        onClick={() => void handlePay()}
-        disabled={status !== "ready"}
-      >
+      <p className="paypal-amount">
         {status === "loading"
           ? "Loading PayPal…"
-          : status === "paying"
-            ? "Opening PayPal…"
-            : `Pay ${amountLabel} with PayPal`}
-      </button>
+          : `Pay ${amountLabel} with PayPal`}
+      </p>
+      <div ref={containerRef} className="paypal-button-container" />
       <p className="hint">
         Sandbox only. The approval and capture are real PayPal Sandbox API
         calls; no real money moves.
