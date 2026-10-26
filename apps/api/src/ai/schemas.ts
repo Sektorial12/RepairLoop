@@ -113,16 +113,33 @@ export const symptomJsonSchema: Schema = {
   ]
 };
 
-export const batteryReportExtractionSchema = z.object({
-  model: z.string().nullable(),
-  partNumber: z.string().nullable(),
-  designCapacityMwh: z.number().int().positive().nullable(),
-  fullChargeCapacityMwh: z.number().int().positive().nullable(),
-  healthPct: z.number().min(0).max(100).nullable(),
-  cycleCount: z.number().int().nonnegative().nullable(),
-  confidence: z.number().min(0).max(1),
-  warnings: z.array(z.string())
-});
+export const batteryReportExtractionSchema = z
+  .object({
+    model: z.string().nullable(),
+    partNumber: z.string().nullable(),
+    designCapacityMwh: z.number().int().positive().nullable(),
+    fullChargeCapacityMwh: z.number().int().positive().nullable(),
+    healthPct: z.number().min(0).max(100).nullable(),
+    cycleCount: z.number().int().nonnegative().nullable(),
+    confidence: z.number().min(0).max(1),
+    warnings: z.array(z.string())
+  })
+  .refine(
+    (value) => {
+      if (
+        value.designCapacityMwh === null ||
+        value.fullChargeCapacityMwh === null
+      ) {
+        return true;
+      }
+      // Dell design capacity includes a buffer; allow a small overage.
+      return value.fullChargeCapacityMwh <= value.designCapacityMwh * 1.1;
+    },
+    {
+      message:
+        "full charge capacity is implausibly higher than design capacity"
+    }
+  );
 
 export const labelExtractionSchema = z.object({
   brand: z.string().nullable(),
