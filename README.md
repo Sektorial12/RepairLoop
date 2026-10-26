@@ -4,7 +4,7 @@
 
 RepairLoop turns a laptop battery report or label photo into a source-verified replacement-part decision, then completes the purchase with PayPal. AI helps with messy input; a curated, source-linked catalog decides fitment, price, and availability. If RepairLoop cannot verify a match, it says so and disables checkout.
 
-**Status:** Phase 1 foundation complete. The API, catalog matcher, VPS deployment, and web shell are in place. The development roadmap is maintained locally outside this repository.
+**Status:** Phase 2 core flow complete (manual-first). The API, catalog matcher, VPS deployment, web shell, and the verified/no-match/safety check flow are in place. Vercel deployment is intentionally deferred to Phase 6; the development roadmap is maintained locally outside this repository.
 
 ## Why this exists
 
@@ -40,6 +40,8 @@ npm run db:seed
 npm run dev:api   # http://127.0.0.1:3002
 npm run dev:web   # http://localhost:3000
 ```
+
+Once both are running, open the guided flow at `http://localhost:3000/check` or auto-run the demo at `http://localhost:3000/check?demo=1`.
 
 Health check:
 

@@ -111,7 +111,7 @@ VPS_HOST=<VPS_HOST> ./scripts/deploy-vps.sh
 
 The script rsyncs the repository to `/code/repairloop`, runs `npm ci` and `npm run build:api`, then restarts `repairloop-api`.
 
-## Vercel
+## Vercel (Phase 6 — after development)
 
 1. Import the public GitHub repo.
 2. Set the project root to **`apps/web`**.

@@ -6,6 +6,7 @@ import {
   compatibility,
   deviceModels,
   parts,
+  sources,
   symptoms
 } from "../db/schema.js";
 
@@ -36,17 +37,18 @@ export async function matchRoutes(app: FastifyInstance): Promise<void> {
       });
     }
 
-    const [models, partRows, compatibilityRows, symptomRows] =
+    const [models, partRows, compatibilityRows, symptomRows, sourceRows] =
       await Promise.all([
         db.select().from(deviceModels),
         db.select().from(parts),
         db.select().from(compatibility),
-        db.select().from(symptoms)
+        db.select().from(symptoms),
+        db.select().from(sources)
       ]);
 
     const result = matchCatalog(
       {
-        sources: [],
+        sources: sourceRows,
         models,
         parts: partRows,
         compatibility: compatibilityRows,
@@ -56,6 +58,6 @@ export async function matchRoutes(app: FastifyInstance): Promise<void> {
       parsed.data
     );
 
-    return result;
+    return { ...result, sources: sourceRows };
   });
 }

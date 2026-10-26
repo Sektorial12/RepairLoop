@@ -53,7 +53,7 @@ export default function HomePage() {
               PayPal.
             </p>
             <div className="actions">
-              <a className="button primary" href="#how">
+              <a className="button primary" href="/check">
                 Check my laptop battery
               </a>
               <a className="button ghost" href="#models">
@@ -61,7 +61,10 @@ export default function HomePage() {
               </a>
             </div>
             <p className="fine-print">
-              No AI guesses. No wrong-part checkout. Sandbox payments only.
+              No AI guesses. No wrong-part checkout. Sandbox payments only.{" "}
+              <a className="inline-link" href="/check?demo=1">
+                Open the demo case →
+              </a>
             </p>
           </div>
 
