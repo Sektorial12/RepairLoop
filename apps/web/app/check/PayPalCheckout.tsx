@@ -146,7 +146,7 @@ export function PayPalCheckout({
         config.clientId
       )}&currency=${encodeURIComponent(
         config.currency
-      )}&intent=capture&components=buttons`;
+      )}&intent=capture&components=buttons&disable-funding=card`;
 
       await withTimeout(
         loadPayPalSdk(sdkUrl),

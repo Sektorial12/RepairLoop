@@ -1084,6 +1084,11 @@ h3 {
   }
 
   .step-pill {
+    display: none;
+  }
+
+  .step-pill.active {
+    display: inline-flex;
     flex: 0 0 auto;
   }
 }

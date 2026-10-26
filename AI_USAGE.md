@@ -53,6 +53,13 @@ The evaluation set includes 20–30 redacted battery-report/label images and 10 
 
 Targets: top-1 exact ≥80%, top-3 ≥95%, zero unsupported fitment claims, no-match correctness ≥95%. Results must be reproducible and honest. If targets are not met, manual entry becomes the primary path.
 
+### Evaluation snapshot (26 Oct 2026)
+
+- **Symptom set:** 10 descriptions. All 10 mapped to the expected tag; both damaged-battery descriptions triggered the safety flag; the non-battery description returned no tags and one clarifying question.
+- **Battery report:** synthetic image containing the real values (`68,005 / 46,907 mWh`, `X77XY`) returned the exact model, part, capacities, 69% health, and confidence 0.95.
+- **Label:** synthetic label returned `DELL`, `Latitude 5400`, `P98G`, `X77XY`, 68Wh, 7.6V, and confidence 0.95.
+- **Limitation:** the full 20–30 image set and the owner’s actual screenshot/label photo are still pending. Manual entry remains the fallback; no unsupported fitment was observed.
+
 ## Privacy and free-tier terms
 
 - Gemini’s free tier may use submitted content to improve Google products. Treat all uploaded images as potentially public.
