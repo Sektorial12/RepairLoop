@@ -30,9 +30,13 @@ async function postJson<T>(route: string, body: unknown): Promise<T> {
       body: JSON.stringify(body)
     });
 
-    if (response.status === 429 && attempt === 0) {
-      console.log(`rate limited on ${route}; waiting 25s`);
-      await new Promise((resolve) => setTimeout(resolve, 25000));
+    const retryable = [429, 502, 503, 504].includes(response.status);
+    if (retryable && attempt === 0) {
+      const wait = response.status === 429 ? 25000 : 10000;
+      console.log(
+        `transient ${response.status} on ${route}; waiting ${wait / 1000}s`
+      );
+      await new Promise((resolve) => setTimeout(resolve, wait));
       continue;
     }
     break;
@@ -46,7 +50,7 @@ async function postJson<T>(route: string, body: unknown): Promise<T> {
   }
 
   const data = (await response.json()) as T;
-  await new Promise((resolve) => setTimeout(resolve, 1200));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
   return data;
 }
 
