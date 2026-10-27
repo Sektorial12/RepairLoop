@@ -227,6 +227,24 @@ export async function createPayPalOrder(params: {
   );
 }
 
+export function isCompletedCapture(
+  response: PayPalCaptureResponse,
+  capture: PayPalCapture | undefined
+): capture is PayPalCapture {
+  return response.status === "COMPLETED" && capture?.status === "COMPLETED";
+}
+
+export function captureMatchesOrder(
+  order: { amount: string | null; currency: string },
+  capture: PayPalCapture
+): boolean {
+  return (
+    order.amount === null ||
+    (order.currency === capture.amount.currency_code &&
+      order.amount === capture.amount.value)
+  );
+}
+
 export async function capturePayPalOrder(
   orderId: string,
   requestId: string

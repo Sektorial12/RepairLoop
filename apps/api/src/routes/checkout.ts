@@ -17,8 +17,10 @@ import {
 } from "../db/schema.js";
 import {
   PayPalError,
+  captureMatchesOrder,
   capturePayPalOrder,
-  createPayPalOrder
+  createPayPalOrder,
+  isCompletedCapture
 } from "../paypal/client.js";
 
 type Database = NonNullable<typeof db>;
@@ -31,6 +33,12 @@ const CreateOrderBodySchema = z.object({
 const CaptureParamsSchema = z.object({
   orderId: z.string().min(1)
 });
+
+export function isCompletedOrder<
+  T extends { status: string; paypalCaptureId: string | null }
+>(order: T): order is T & { status: "completed"; paypalCaptureId: string } {
+  return order.status === "completed" && order.paypalCaptureId !== null;
+}
 
 function sendPayPalError(
   request: FastifyRequest,
@@ -276,7 +284,7 @@ export async function checkoutRoutes(
         return reply.code(404).send({ error: "order_not_found" });
       }
 
-      if (order.status === "completed" && order.paypalCaptureId) {
+      if (isCompletedOrder(order)) {
         return buildReceipt(
           database,
           order,
@@ -297,22 +305,14 @@ export async function checkoutRoutes(
       const capture =
         captureResponse.purchase_units?.[0]?.payments?.captures?.[0];
 
-      if (
-        captureResponse.status !== "COMPLETED" ||
-        !capture ||
-        capture.status !== "COMPLETED"
-      ) {
+      if (!isCompletedCapture(captureResponse, capture)) {
         return reply.code(422).send({
           error: "capture_not_completed",
           status: captureResponse.status
         });
       }
 
-      if (
-        order.amount !== null &&
-        (order.currency !== capture.amount.currency_code ||
-          order.amount !== capture.amount.value)
-      ) {
+      if (!captureMatchesOrder(order, capture)) {
         return reply.code(422).send({ error: "amount_mismatch" });
       }
 
