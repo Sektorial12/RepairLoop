@@ -19,10 +19,12 @@
 ## API
 
 - CORS allowlist only the deployed frontend origins.
-- Rate-limit AI, upload, match, and checkout endpoints.
+- Rate-limit all endpoints globally, with a stricter limit on AI; exempt PayPal webhooks because signature verification is the gate.
+- Send Helmet-style security headers (`nosniff`, frame denial, referrer policy, HSTS).
+- Deduplicate webhook events by event ID and reject unverified signatures.
 - Validate all request bodies with Zod.
 - Upload limits: images only, 5 MB, no executables; strip metadata where possible.
-- Bind the API to localhost; terminate HTTPS at the reverse proxy.
+- Bind to localhost in development; bind to the platform-provided host in production and terminate HTTPS at the reverse proxy.
 - Run the API with least privilege and process isolation.
 - Do not expose stack traces or secrets in error responses.
 - Log request metadata, not image contents or credentials.
