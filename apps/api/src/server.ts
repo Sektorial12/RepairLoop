@@ -6,6 +6,7 @@ import rateLimit from "@fastify/rate-limit";
 import { corsOrigins, env, serviceVersion } from "./config.js";
 import { closeDb } from "./db/client.js";
 import { aiRoutes } from "./routes/ai.js";
+import { catalogRoutes } from "./routes/catalog.js";
 import { checkoutRoutes } from "./routes/checkout.js";
 import { healthRoutes } from "./routes/health.js";
 import { matchRoutes } from "./routes/match.js";
@@ -55,11 +56,12 @@ app.addContentTypeParser(
 app.get("/", async () => ({
   service: "repairloop-api",
   version: serviceVersion,
-  docs: "/health, /api/models, /api/match, /api/ai/health, /api/paypal/config"
+  docs: "/health, /api/models, /api/catalog, /api/match, /api/ai/health, /api/paypal/config"
 }));
 
 await app.register(healthRoutes);
 await app.register(modelRoutes, { prefix: "/api" });
+await app.register(catalogRoutes, { prefix: "/api" });
 await app.register(matchRoutes, { prefix: "/api" });
 await app.register(aiRoutes, { prefix: "/api" });
 await app.register(repairCaseRoutes, { prefix: "/api" });

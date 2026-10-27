@@ -66,6 +66,25 @@ code {
   border-bottom: 1px solid rgba(216, 210, 196, 0.7);
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-link {
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: var(--teal-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -919,6 +938,60 @@ h3 {
   font-weight: 800;
 }
 
+.catalog-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.catalog-section {
+  margin-top: 1.6rem;
+}
+
+.catalog-section h2 {
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+}
+
+.catalog-models {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.catalog-model {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  padding: 0.28rem 0.55rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.catalog-notes {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.catalog-source-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.catalog-source-item {
+  border-top: 1px dashed var(--line);
+  padding-top: 0.8rem;
+}
+
+.catalog-source-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
 .source-line {
   display: flex;
   flex-wrap: wrap;
@@ -1183,3 +1256,8 @@ h3 {
   font-size: 0.8rem;
 }
 
+@media (max-width: 860px) {
+  .catalog-grid {
+    grid-template-columns: 1fr;
+  }
+}

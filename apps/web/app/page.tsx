@@ -39,7 +39,12 @@ export default function HomePage() {
             <span className="brand-mark">R</span>
             <span>RepairLoop</span>
           </div>
-          <span className="badge">Sandbox prototype</span>
+          <div className="nav-actions">
+            <a className="nav-link" href="/catalog">
+              Catalog
+            </a>
+            <span className="badge">Sandbox prototype</span>
+          </div>
         </nav>
 
         <section className="hero">

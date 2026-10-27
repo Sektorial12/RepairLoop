@@ -92,7 +92,12 @@ export default function ReceiptPage() {
             <span className="brand-mark">R</span>
             <span>RepairLoop</span>
           </Link>
-          <span className="badge">Sandbox receipt</span>
+          <div className="nav-actions">
+            <Link className="nav-link" href="/catalog">
+              Catalog
+            </Link>
+            <span className="badge">Sandbox receipt</span>
+          </div>
         </nav>
 
         <div className="check-shell">

@@ -781,7 +781,12 @@ export default function CheckPage() {
             <span className="brand-mark">R</span>
             <span>RepairLoop</span>
           </Link>
-          <span className="badge">Sandbox prototype</span>
+          <div className="nav-actions">
+            <Link className="nav-link" href="/catalog">
+              Catalog
+            </Link>
+            <span className="badge">Sandbox prototype</span>
+          </div>
         </nav>
 
         <div className="check-shell">
