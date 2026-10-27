@@ -56,7 +56,7 @@ app.addContentTypeParser(
 app.get("/", async () => ({
   service: "repairloop-api",
   version: serviceVersion,
-  docs: "/health, /api/models, /api/catalog, /api/match, /api/ai/health, /api/paypal/config"
+  docs: "/health, /api/status, /api/models, /api/catalog, /api/match, /api/ai/health, /api/paypal/config"
 }));
 
 await app.register(healthRoutes);

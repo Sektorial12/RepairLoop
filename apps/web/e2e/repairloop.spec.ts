@@ -19,6 +19,17 @@ test("home explains the promise and links to the catalog", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Check my laptop battery" })).toBeVisible();
 });
 
+test("home stays online when the status probe is blocked", async ({ page }) => {
+  await page.route("**/api/status", (route) => route.abort("blockedbyclient"));
+  await mockModels(page);
+
+  await page.goto("/");
+
+  await expect(page.getByText("API online.")).toBeVisible();
+  await expect(page.getByText(/Health details unavailable/)).toBeVisible();
+  await expect(page.getByText("4 supported models")).toBeVisible();
+});
+
 test("catalog shows verified parts, the exclusion, and source freshness", async ({
   page
 }) => {

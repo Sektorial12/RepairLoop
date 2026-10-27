@@ -3,13 +3,7 @@ import { env, serviceVersion } from "../config.js";
 import { checkDb } from "../db/client.js";
 
 export async function healthRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/live", async () => ({
-    ok: true,
-    service: "repairloop-api",
-    version: serviceVersion
-  }));
-
-  app.get("/health", async () => ({
+  const status = async () => ({
     ok: true,
     service: "repairloop-api",
     version: serviceVersion,
@@ -19,5 +13,14 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
       env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET
     ),
     time: new Date().toISOString()
+  });
+
+  app.get("/live", async () => ({
+    ok: true,
+    service: "repairloop-api",
+    version: serviceVersion
   }));
+
+  app.get("/health", status);
+  app.get("/api/status", status);
 }

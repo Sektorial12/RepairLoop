@@ -17,7 +17,7 @@ export async function mockModels(page: Page): Promise<void> {
 }
 
 export async function mockStatus(page: Page): Promise<void> {
-  await page.route("**/health", (route) =>
+  await page.route("**/api/status", (route) =>
     route.fulfill({
       json: {
         ok: true,
