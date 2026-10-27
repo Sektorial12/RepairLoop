@@ -89,6 +89,43 @@ describe("PayPal client", () => {
     });
   });
 
+  it("maps a PayPal network timeout to an upstream error", async () => {
+    const timeoutError = Object.assign(new Error("timed out"), {
+      name: "TimeoutError"
+    });
+    const fetchMock = vi.fn().mockRejectedValue(timeoutError);
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { createPayPalOrder, PayPalError } = await import(
+      "../src/paypal/client.js"
+    );
+
+    await expect(
+      createPayPalOrder({
+        amount: "109.95",
+        currency: "USD",
+        description: "Dell 68Wh battery — 4GVMP",
+        customId: "case-1|part-4gvmp-68wh",
+        referenceId: "part-4gvmp-68wh",
+        requestId: "repairloop-case-1"
+      })
+    ).rejects.toMatchObject({
+      kind: "upstream",
+      message: "PayPal request timed out"
+    });
+    await expect(
+      createPayPalOrder({
+        amount: "109.95",
+        currency: "USD",
+        description: "Dell 68Wh battery — 4GVMP",
+        customId: "case-1|part-4gvmp-68wh",
+        referenceId: "part-4gvmp-68wh",
+        requestId: "repairloop-case-1"
+      })
+    ).rejects.toBeInstanceOf(PayPalError);
+    expect(fetchMock).toHaveBeenCalled();
+  });
+
   it("sends the capture request with its own idempotency key", async () => {
     const fetchMock = vi
       .fn()

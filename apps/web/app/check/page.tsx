@@ -224,6 +224,7 @@ export default function CheckPage() {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
   const [explanation, setExplanation] = useState<Explanation | null>(null);
@@ -361,6 +362,7 @@ export default function CheckPage() {
   ): Promise<MatchResult | null> => {
     setLoading(true);
     setError(null);
+    setPaymentNotice(null);
 
     try {
       const response = await fetch(`${apiBaseUrl}/api/match`, {
@@ -658,6 +660,7 @@ export default function CheckPage() {
     setReceipt(null);
     setExplanation(null);
     setExplanationError(null);
+    setPaymentNotice(null);
   };
 
   const chooseOption = (option: MatchOption) => {
@@ -710,6 +713,16 @@ export default function CheckPage() {
       timers.forEach(clearTimeout);
     };
   }, [receipt?.orderId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("paypal") === "cancel") {
+      setPaymentNotice(
+        "Payment cancelled. No charge. Your repair case is still here; retry or edit the details."
+      );
+    }
+  }, []);
 
   const demoStarted = useRef(false);
 
@@ -830,6 +843,12 @@ export default function CheckPage() {
               </li>
             ))}
           </ol>
+
+          {paymentNotice ? (
+            <div className="notice notice-warning" role="status">
+              {paymentNotice}
+            </div>
+          ) : null}
 
           {error ? (
             <div className="notice notice-danger" role="alert">

@@ -4,6 +4,7 @@ import {
   mockCatalog,
   mockMatches,
   mockModels,
+  mockPayPal,
   mockStatus
 } from "./helpers";
 
@@ -49,6 +50,55 @@ test("receipt survives a refresh and shows the verified capture", async ({
 
   await expect(page.getByText("Payment complete — sandbox")).toBeVisible();
   await expect(page.getByText("CAP-TEST-123").first()).toBeVisible();
+});
+
+test("PayPal cancel return shows a no-charge notice", async ({ page }) => {
+  await mockModels(page);
+  await page.goto("/check?paypal=cancel");
+
+  await expect(page.getByText(/Payment cancelled. No charge/)).toBeVisible();
+  await expect(page.getByText("Payment complete — sandbox")).toHaveCount(0);
+});
+
+test.describe("PayPal failure states", () => {
+  test.beforeEach(async ({ page }) => {
+    await mockModels(page);
+    await mockMatches(page);
+  });
+
+  test("in-checkout cancel reports no charge", async ({ page }) => {
+    await mockPayPal(page, "cancel");
+    await page.goto("/check?demo=review");
+
+    await expect(
+      page.getByRole("heading", { name: "Review the exact part" })
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByRole("button", { name: "Pay with PayPal" })
+    ).toBeVisible({ timeout: 20_000 });
+
+    await page.getByRole("button", { name: "Pay with PayPal" }).click();
+
+    await expect(page.getByText("Payment cancelled. No charge.")).toBeVisible();
+    await expect(page.getByText("Payment complete — sandbox")).toHaveCount(0);
+  });
+
+  test("failed capture never shows success", async ({ page }) => {
+    await mockPayPal(page, "capture-failure");
+    await page.goto("/check?demo=review");
+
+    await expect(
+      page.getByRole("heading", { name: "Review the exact part" })
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByRole("button", { name: "Pay with PayPal" })
+    ).toBeVisible({ timeout: 20_000 });
+
+    await page.getByRole("button", { name: "Pay with PayPal" }).click();
+
+    await expect(page.getByText(/Do not assume success/)).toBeVisible();
+    await expect(page.getByText("Payment complete — sandbox")).toHaveCount(0);
+  });
 });
 
 test.describe("check flow scenarios", () => {

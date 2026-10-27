@@ -11,7 +11,13 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure"
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "mobile-chrome", use: { ...devices["Pixel 7"] } },
+    ...(process.env.CI || process.env.PLAYWRIGHT_WEBKIT === "1"
+      ? [{ name: "mobile-webkit", use: { ...devices["iPhone 13"] } }]
+      : [])
+  ],
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1",
     url: "http://127.0.0.1:3000",

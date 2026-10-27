@@ -77,6 +77,26 @@ export function getPayPalPublicConfig(): PayPalPublicConfig {
   };
 }
 
+async function paypalFetch(
+  url: string,
+  init: RequestInit = {}
+): Promise<Response> {
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: AbortSignal.timeout(20000)
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.name === "AbortError" || error.name === "TimeoutError")
+    ) {
+      throw new PayPalError("upstream", "PayPal request timed out");
+    }
+    throw error;
+  }
+}
+
 async function getAccessToken(): Promise<string> {
   if (!paypalConfigured()) {
     throw new PayPalError("not_configured", "PayPal is not configured");
@@ -90,7 +110,7 @@ async function getAccessToken(): Promise<string> {
     `${env.PAYPAL_CLIENT_ID}:${env.PAYPAL_CLIENT_SECRET}`
   ).toString("base64");
 
-  const response = await fetch(`${env.PAYPAL_API_BASE}/v1/oauth2/token`, {
+  const response = await paypalFetch(`${env.PAYPAL_API_BASE}/v1/oauth2/token`, {
     method: "POST",
     headers: {
       Authorization: `Basic ${credentials}`,
@@ -136,7 +156,7 @@ async function paypalRequest<T>(
   },
   token: string
 ): Promise<T> {
-  const response = await fetch(`${env.PAYPAL_API_BASE}${path}`, {
+  const response = await paypalFetch(`${env.PAYPAL_API_BASE}${path}`, {
     method: init.method,
     body: init.body,
     headers: {
@@ -296,7 +316,7 @@ async function getCertificate(url: string): Promise<string> {
     throw new PayPalError("upstream", "Unexpected PayPal certificate host");
   }
 
-  const response = await fetch(url);
+  const response = await paypalFetch(url);
   if (!response.ok) {
     throw new PayPalError(
       "upstream",

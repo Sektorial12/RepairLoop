@@ -71,7 +71,7 @@ npm test                 # API matcher + PayPal unit tests
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run test:e2e         # 6 browser smoke tests with mocked API fixtures
+npm run test:e2e         # 9 browser tests: desktop + mobile Chromium; WebKit mobile in CI
 ```
 
 The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the deployed API.

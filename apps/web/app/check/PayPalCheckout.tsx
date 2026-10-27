@@ -236,7 +236,10 @@ export function PayPalCheckout({
               `${apiBaseUrl}/api/checkout/orders/${encodeURIComponent(
                 orderId
               )}/capture`,
-              { method: "POST" }
+              {
+                method: "POST",
+                signal: AbortSignal.timeout(30000)
+              }
             );
 
             if (!response.ok) {
@@ -255,9 +258,13 @@ export function PayPalCheckout({
           } catch (caught) {
             setStatus("ready");
             setError(
-              caught instanceof Error
-                ? `${caught.message} Do not assume success; retry or check the order.`
-                : "Payment was approved, but capture failed. Do not assume success."
+              caught instanceof Error &&
+                (caught.name === "TimeoutError" ||
+                  caught.name === "AbortError")
+                ? "Payment capture timed out. Do not assume success; retry or check the order."
+                : caught instanceof Error
+                  ? `${caught.message} Do not assume success; retry or check the order.`
+                  : "Payment was approved, but capture failed. Do not assume success."
             );
           }
         },
