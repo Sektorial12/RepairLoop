@@ -16,7 +16,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
-    "catalog:check": "tsx src/catalog/check.ts"
+    "catalog:check": "tsx src/catalog/check.ts",
+    "eval:ai": "tsx scripts/eval-ai.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.0",

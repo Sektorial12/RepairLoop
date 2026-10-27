@@ -1526,6 +1526,14 @@ export default function CheckPage() {
                           </ul>
                         </div>
                       ) : null}
+                      <p className="hint">
+                        <Link
+                          className="source-link"
+                          href={`/receipt/${receipt.orderId}`}
+                        >
+                          Open shareable receipt ↗
+                        </Link>
+                      </p>
                     </div>
                   ) : (
                     <>

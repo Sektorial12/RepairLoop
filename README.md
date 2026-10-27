@@ -2,6 +2,8 @@
 
 > **Repair the right thing, with the right part.**
 
+[![CI](https://github.com/Sektorial12/RepairLoop/actions/workflows/ci.yml/badge.svg)](https://github.com/Sektorial12/RepairLoop/actions/workflows/ci.yml)
+
 RepairLoop turns a laptop battery report or label photo into a source-verified replacement-part decision, then completes the purchase with PayPal. AI helps with messy input; a curated, source-linked catalog decides fitment, price, and availability. If RepairLoop cannot verify a match, it says so and disables checkout.
 
 **Status:** Working prototype. The verified/no-match/safety battery check flow, live Gemini extraction, and PayPal Sandbox checkout/capture are implemented. No fake paid state is shown.

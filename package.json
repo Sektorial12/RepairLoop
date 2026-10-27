@@ -20,6 +20,7 @@
     "db:migrate": "npm run db:migrate -w @repairloop/api",
     "db:push": "npm run db:push -w @repairloop/api",
     "db:seed": "npm run db:seed -w @repairloop/api",
-    "catalog:check": "npm run catalog:check -w @repairloop/api"
+    "catalog:check": "npm run catalog:check -w @repairloop/api",
+    "eval:ai": "npm run eval:ai -w @repairloop/api"
   }
 }

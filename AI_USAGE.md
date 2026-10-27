@@ -60,6 +60,12 @@ Targets: top-1 exact ≥80%, top-3 ≥95%, zero unsupported fitment claims, no-m
 - **Label:** synthetic label returned `DELL`, `Latitude 5400`, `P98G`, `X77XY`, 68Wh, 7.6V, and confidence 0.95.
 - **Limitation:** the full 20–30 image set and the owner’s actual screenshot/label photo are still pending. Manual entry remains the fallback; no unsupported fitment was observed.
 
+Run the reproducible harness (uses the deployed API and synthetic fixtures):
+
+```bash
+EVAL_BASE_URL=https://repairloop-api.onrender.com npm run eval:ai -w @repairloop/api
+```
+
 ## Privacy and free-tier terms
 
 - Gemini’s free tier may use submitted content to improve Google products. Treat all uploaded images as potentially public.
