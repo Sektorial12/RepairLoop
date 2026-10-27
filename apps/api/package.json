@@ -19,6 +19,7 @@
     "catalog:check": "tsx src/catalog/check.ts",
     "db:sync-catalog": "tsx scripts/sync-catalog.ts",
     "db:scrub-events": "tsx scripts/scrub-events.ts",
+    "db:backup": "tsx scripts/backup-db.ts",
     "eval:ai": "tsx scripts/eval-ai.ts"
   },
   "dependencies": {

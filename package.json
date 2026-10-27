@@ -23,6 +23,7 @@
     "catalog:check": "npm run catalog:check -w @repairloop/api",
     "db:sync-catalog": "npm run db:sync-catalog -w @repairloop/api",
     "db:scrub-events": "npm run db:scrub-events -w @repairloop/api",
+    "db:backup": "npm run db:backup -w @repairloop/api",
     "eval:ai": "npm run eval:ai -w @repairloop/api",
     "test:e2e": "npm run test:e2e -w @repairloop/web",
     "test:e2e:install": "npm run test:e2e:install -w @repairloop/web"

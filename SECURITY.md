@@ -14,6 +14,7 @@
 - Capture is server-side; success is shown only after a verified `COMPLETED` capture.
 - Verify webhook signatures using the raw request body and the configured webhook ID; reject transmissions outside a 15-minute window.
 - Deduplicate by PayPal event ID before state changes; apply only monotonic status transitions (no approved/capture replay downgrade).
+- Treat symptom text as untrusted data in AI prompts; never let AI change catalog, price, or payment state.
 - Validate image magic bytes, not only the declared MIME type.
 - Use idempotency keys for order creation and capture; build return/cancel URLs only from the CORS allowlist and create a fresh order after cancel/failure.
 - Do not collect or store card data.

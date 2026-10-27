@@ -72,4 +72,5 @@ EVAL_BASE_URL=https://repairloop-api.onrender.com npm run eval:ai -w @repairloop
 - Crop to the “Installed batteries” section, redact serial numbers/service tags, and avoid personal data.
 - Do not store the full uploaded image or report; store only the extracted fields needed for the repair case.
 - Do not send payment credentials, card data, or customer data to the model.
+- Symptom text is wrapped as untrusted data; adversarial image/prompt-injection tests remain pending.
 - The API key stays server-side; never expose it in the browser or repository.

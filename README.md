@@ -38,6 +38,8 @@ cp .env.example .env
 npm run db:generate
 npm run db:push
 npm run db:seed
+# Custom-format backup into backups/ (pg_dump must match the Neon server major version; otherwise use Neon console backups):
+# npm run db:backup
 # db:seed is non-destructive; for catalog-only updates:
 # npm run db:sync-catalog
 # Scrub old full PayPal webhook payloads to metadata only:

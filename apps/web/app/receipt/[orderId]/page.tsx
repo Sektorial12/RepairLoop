@@ -46,6 +46,8 @@ export default function ReceiptPage() {
   const [data, setData] = useState<ReceiptData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [capturing, setCapturing] = useState(false);
+  const [captureError, setCaptureError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!orderId) return;
@@ -84,6 +86,34 @@ export default function ReceiptPage() {
       cancelled = true;
     };
   }, [orderId]);
+
+  const retryCapture = async () => {
+    if (!orderId) return;
+    setCapturing(true);
+    setCaptureError(null);
+
+    try {
+      const response = await fetch(
+        `${apiBaseUrl}/api/checkout/orders/${encodeURIComponent(orderId)}/capture`,
+        { method: "POST" }
+      );
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string; message?: string }
+        | null;
+      if (!response.ok) {
+        throw new Error(
+          body?.message ?? body?.error ?? `Capture retry returned ${response.status}.`
+        );
+      }
+      window.location.reload();
+    } catch (caught) {
+      setCaptureError(
+        caught instanceof Error ? caught.message : "Could not retry the capture."
+      );
+    } finally {
+      setCapturing(false);
+    }
+  };
 
   return (
     <main>
@@ -214,7 +244,22 @@ export default function ReceiptPage() {
                 only — no real money moved.
               </p>
 
+              {captureError ? (
+                <div className="notice notice-danger">{captureError}</div>
+              ) : null}
+
               <div className="button-row">
+                {data.order.status === "created" ||
+                data.order.status === "approved" ? (
+                  <button
+                    className="button primary"
+                    type="button"
+                    onClick={() => void retryCapture()}
+                    disabled={capturing}
+                  >
+                    {capturing ? "Retrying capture…" : "Retry capture"}
+                  </button>
+                ) : null}
                 <Link className="button primary" href="/check">
                   Check another device
                 </Link>

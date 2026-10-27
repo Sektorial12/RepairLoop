@@ -1,5 +1,6 @@
 import { catalogData } from "./data.js";
 
+const MAX_SOURCE_AGE_DAYS = 180;
 const errors: string[] = [];
 
 const sourceIds = new Set(catalogData.sources.map((source) => source.id));
@@ -21,6 +22,14 @@ for (const source of catalogData.sources) {
     Number.isNaN(source.accessedAt.getTime())
   ) {
     errors.push(`Source ${source.id} has an invalid accessedAt`);
+  } else {
+    const ageDays =
+      (Date.now() - source.accessedAt.getTime()) / (24 * 60 * 60 * 1000);
+    if (ageDays > MAX_SOURCE_AGE_DAYS) {
+      errors.push(
+        `Source ${source.id} is older than ${MAX_SOURCE_AGE_DAYS} days`
+      );
+    }
   }
 }
 
