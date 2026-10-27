@@ -17,6 +17,8 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
     "catalog:check": "tsx src/catalog/check.ts",
+    "db:sync-catalog": "tsx scripts/sync-catalog.ts",
+    "db:scrub-events": "tsx scripts/scrub-events.ts",
     "eval:ai": "tsx scripts/eval-ai.ts"
   },
   "dependencies": {

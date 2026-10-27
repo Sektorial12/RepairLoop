@@ -38,6 +38,10 @@ cp .env.example .env
 npm run db:generate
 npm run db:push
 npm run db:seed
+# For catalog-only updates after the first seed (non-destructive):
+# npm run db:sync-catalog
+# Scrub old full PayPal webhook payloads to metadata only:
+# npm run db:scrub-events
 npm run dev:api   # http://127.0.0.1:3002
 npm run dev:web   # http://localhost:3000
 ```
@@ -55,7 +59,7 @@ The API loads the repository-root `.env` first, then `apps/api/.env`. No secrets
 - Real completed Sandbox receipt: `https://repair-loop-nu.vercel.app/receipt/7LS832802T701580V`
 - Catalog: `https://repair-loop-nu.vercel.app/catalog`
 
-PayPal is Sandbox-only. Reviewer buyer credentials are supplied in the Devpost private field; do not use a real PayPal account. The buyer can complete a fresh capture without real money. The catalog shows demo prices and does not claim live stock or shipping.
+PayPal is Sandbox-only. The demo video shows the full approval, capture, and receipt path; reviewers who want to run a fresh payment can use a PayPal Sandbox buyer. Do not use a real PayPal account. The catalog shows demo prices and does not claim live stock or shipping.
 
 Health check:
 
