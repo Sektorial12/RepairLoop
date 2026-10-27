@@ -42,7 +42,7 @@ npm run dev:api   # http://127.0.0.1:3002
 npm run dev:web   # http://localhost:3000
 ```
 
-Once both are running, open the guided flow at `http://localhost:3000/check` or auto-run the demo at `http://localhost:3000/check?demo=1`.
+Once both are running, open the guided flow at `http://localhost:3000/check` or auto-run the demo at `http://localhost:3000/check?demo=1`. Browse the source-linked catalog at `http://localhost:3000/catalog`; completed sandbox orders are shareable at `/receipt/[orderId]`.
 
 Health check:
 
@@ -64,13 +64,25 @@ curl -sS http://127.0.0.1:3002/api/match \
   }'
 ```
 
+## Verify
+
+```bash
+npm test                 # API matcher + PayPal unit tests
+npm run typecheck
+npm run build
+npx playwright install chromium
+npm run test:e2e         # 6 browser smoke tests with mocked API fixtures
+```
+
+The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the deployed API.
+
 ## Project structure
 
 ```text
 .
 ├── apps/
 │   ├── api/       # Fastify API, catalog, matcher, Drizzle schema
-│   └── web/       # Next.js landing page and API status
+│   └── web/       # Next.js landing, check flow, catalog, receipt
 ├── packages/
 │   └── shared/    # shared TypeScript types
 ├── .env.example
@@ -87,6 +99,7 @@ curl -sS http://127.0.0.1:3002/api/match \
 - No verified source → no match → no checkout.
 - Damaged/swollen/leaking/overheating battery → stop; recommend professional service.
 - Payment success is shown only after a verified PayPal `COMPLETED` capture.
+- Security headers, a global API rate limit, and signature-verified PayPal webhooks are enabled.
 - No secrets, card data, or personal data in the repository.
 - Sandbox demo only; this is not a real parts store.
 

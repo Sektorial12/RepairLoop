@@ -21,6 +21,8 @@
     "db:push": "npm run db:push -w @repairloop/api",
     "db:seed": "npm run db:seed -w @repairloop/api",
     "catalog:check": "npm run catalog:check -w @repairloop/api",
-    "eval:ai": "npm run eval:ai -w @repairloop/api"
+    "eval:ai": "npm run eval:ai -w @repairloop/api",
+    "test:e2e": "npm run test:e2e -w @repairloop/web",
+    "test:e2e:install": "npm run test:e2e:install -w @repairloop/web"
   }
 }

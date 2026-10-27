@@ -30,3 +30,9 @@ jobs:
         run: npm run build -w @repairloop/web
         env:
           NEXT_PUBLIC_API_BASE_URL: https://repairloop-api.onrender.com
+
+      - name: Install Playwright Chromium
+        run: npm run test:e2e:install
+
+      - name: E2E
+        run: npm run test:e2e
