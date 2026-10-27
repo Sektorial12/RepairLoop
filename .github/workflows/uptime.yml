@@ -1,0 +1,23 @@
+name: Uptime
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: API readiness
+        run: curl --fail --silent --show-error --retry 2 --retry-delay 5 --max-time 30 https://repairloop-api.onrender.com/ready
+      - name: API catalog
+        run: curl --fail --silent --show-error --retry 2 --retry-delay 5 --max-time 30 https://repairloop-api.onrender.com/api/catalog
+      - name: Hosted home
+        run: curl --fail --silent --show-error --retry 2 --retry-delay 5 --max-time 30 https://repair-loop-nu.vercel.app/
+      - name: Privacy page
+        run: curl --fail --silent --show-error --retry 2 --retry-delay 5 --max-time 30 https://repair-loop-nu.vercel.app/privacy

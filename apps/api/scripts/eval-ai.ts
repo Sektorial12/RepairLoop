@@ -64,9 +64,20 @@ async function postJson<T>(route: string, body: unknown): Promise<T> {
   return data;
 }
 
+function mimeFor(file: string): "image/png" | "image/jpeg" | "image/webp" {
+  const extension = path.extname(file).toLowerCase();
+  if (extension === ".jpg" || extension === ".jpeg") return "image/jpeg";
+  if (extension === ".webp") return "image/webp";
+  return "image/png";
+}
+
 async function evalImages(): Promise<void> {
-  const report = await readFile(path.join(fixtures, "battery-report.png"));
-  const label = await readFile(path.join(fixtures, "battery-label.png"));
+  const reportPath =
+    process.env.EVAL_REPORT_IMAGE ?? path.join(fixtures, "battery-report.png");
+  const labelPath =
+    process.env.EVAL_LABEL_IMAGE ?? path.join(fixtures, "battery-label.png");
+  const report = await readFile(reportPath);
+  const label = await readFile(labelPath);
 
   const reportData = await postJson<{
     extraction: {
@@ -78,7 +89,7 @@ async function evalImages(): Promise<void> {
     };
   }>("/api/extract/battery-report", {
     imageBase64: report.toString("base64"),
-    mimeType: "image/png"
+    mimeType: mimeFor(reportPath)
   });
 
   const r = reportData.extraction;
@@ -116,7 +127,7 @@ async function evalImages(): Promise<void> {
     };
   }>("/api/extract/label", {
     imageBase64: label.toString("base64"),
-    mimeType: "image/png"
+    mimeType: mimeFor(labelPath)
   });
 
   const l = labelData.extraction;

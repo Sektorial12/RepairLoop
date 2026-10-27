@@ -122,5 +122,6 @@ The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the de
 - No secrets, card data, or personal data in the repository.
 - Sandbox demo only; this is not a real parts store.
 - Prototype privacy, terms, and AI disclosure are linked in the app footer.
+- GitHub Actions checks the live API readiness, catalog, and hosted pages every 30 minutes; a failing run is the alerting signal.
 
 Dell is a trademark of Dell Inc. RepairLoop is not affiliated with or endorsed by Dell.

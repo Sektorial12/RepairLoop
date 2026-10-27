@@ -58,12 +58,16 @@ Targets: top-1 exact ≥80%, top-3 ≥95%, zero unsupported fitment claims, no-m
 - **Battery report:** synthetic image containing the real values (`68,005 / 46,907 mWh`, `X77XY`) returned the exact model, part, capacities, 69% health, and confidence 0.95.
 - **Label:** synthetic label returned `DELL`, `Latitude 5400`, `P98G`, `X77XY`, 68Wh, 7.6V, and confidence 0.95.
 - **Automated harness (2026-10-27):** 25/25 checks passed against the deployed API: 5 report checks, 7 label checks, 10 symptom cases, and 3 grounded-explanation checks. One transient Render 502 was retried successfully.
-- **Limitation:** the full 20–30 image set remains pending. The synthetic harness and a redacted real-media pass are documented; manual entry remains the fallback. No unsupported fitment was observed.
+- **Limitation:** the full 20–30 image set remains pending. The synthetic harness and a redacted real-media pass are documented; manual entry remains the fallback. No unsupported fitment was observed. To test actual redacted media, set `EVAL_REPORT_IMAGE` and/or `EVAL_LABEL_IMAGE` to the local file paths.
 
 Run the reproducible harness (uses the deployed API and synthetic fixtures):
 
 ```bash
 EVAL_BASE_URL=https://repairloop-api.onrender.com npm run eval:ai -w @repairloop/api
+
+# Optional real redacted media:
+# EVAL_REPORT_IMAGE=/local/report.jpg EVAL_LABEL_IMAGE=/local/label.jpg \
+#   EVAL_BASE_URL=https://repairloop-api.onrender.com npm run eval:ai -w @repairloop/api
 ```
 
 ## Privacy and free-tier terms
@@ -72,5 +76,5 @@ EVAL_BASE_URL=https://repairloop-api.onrender.com npm run eval:ai -w @repairloop
 - Crop to the “Installed batteries” section, redact serial numbers/service tags, and avoid personal data.
 - Do not store the full uploaded image or report; store only the extracted fields needed for the repair case.
 - Do not send payment credentials, card data, or customer data to the model.
-- Symptom text is wrapped as untrusted data; adversarial image/prompt-injection tests remain pending.
+- Symptom text is wrapped as JSON untrusted data and the wrapper is unit-tested; adversarial image/prompt-injection model behavior remains pending.
 - The API key stays server-side; never expose it in the browser or repository.
