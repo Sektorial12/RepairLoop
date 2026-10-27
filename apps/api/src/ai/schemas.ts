@@ -211,3 +211,42 @@ Rules:
 - Ask at most one short clarifying question if the description is ambiguous.
 - confidence: 0-1.
 Return only JSON matching the provided schema.`;
+
+export const explanationJsonSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    explanation: {
+      type: Type.STRING,
+      description:
+        "Two to four concise sentences explaining why the selected part fits, using only the supplied evidence."
+    },
+    citedSourceUrl: {
+      type: Type.STRING,
+      description:
+        "Exactly the provided source URL; do not invent or rewrite it."
+    },
+    confidence: {
+      type: Type.NUMBER,
+      description: "Explanation confidence from 0 to 1."
+    }
+  },
+  required: ["explanation", "citedSourceUrl", "confidence"]
+};
+
+export const explanationSchema = z.object({
+  explanation: z.string().min(20).max(1000),
+  citedSourceUrl: z.string().url(),
+  confidence: z.number().min(0).max(1)
+});
+
+export type ExplanationExtraction = z.infer<typeof explanationSchema>;
+
+export const EXPLANATION_PROMPT = `You explain why a source-verified replacement part fits a confirmed laptop.
+Rules:
+- Use only the evidence supplied below.
+- Do not add compatibility claims, prices, inventory, provider credentials, or predictions.
+- Write two to four concise sentences.
+- Cite the exact supplied source URL in citedSourceUrl. Never invent or rewrite the URL.
+- If the evidence is insufficient, say so briefly and still cite the source.
+- confidence: 0-1.
+Return only JSON matching the provided schema.`;

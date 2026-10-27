@@ -13,6 +13,20 @@ type PaymentEvent = {
   createdAt: string;
 };
 
+type Explanation = {
+  explanation: string;
+  source: {
+    publisher: string;
+    url: string;
+    evidenceQuote?: string | null;
+    fitmentNote?: string | null;
+  };
+  ai: boolean;
+  grounded: boolean;
+  confidence?: number;
+  fallbackReason?: string;
+};
+
 type Model = {
   id: string;
   brand: string;
@@ -212,6 +226,9 @@ export default function CheckPage() {
   const [error, setError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
+  const [explanation, setExplanation] = useState<Explanation | null>(null);
+  const [explanationLoading, setExplanationLoading] = useState(false);
+  const [explanationError, setExplanationError] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState<
     null | "report" | "label" | "symptoms"
   >(null);
@@ -364,6 +381,8 @@ export default function CheckPage() {
       setSelectedOption(
         data.status === "verified_match" && data.exact ? data.exact : null
       );
+      setExplanation(null);
+      setExplanationError(null);
       setStep(3);
       return data;
     } catch (caught) {
@@ -391,6 +410,8 @@ export default function CheckPage() {
     setSymptomText("");
     setClarifyingQuestion(null);
     setReceipt(null);
+    setExplanation(null);
+    setExplanationError(null);
     await runMatch(DEMO);
   };
 
@@ -577,6 +598,45 @@ export default function CheckPage() {
     }
   };
 
+  const handleExplain = async (option: MatchOption) => {
+    setExplanationLoading(true);
+    setExplanationError(null);
+    setExplanation(null);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/explain`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...buildPayload(),
+          partId: option.part.id
+        })
+      });
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as
+          | { error?: string; message?: string }
+          | null;
+        throw new Error(
+          body?.message ??
+            body?.error ??
+            "Could not generate a grounded explanation."
+        );
+      }
+
+      const data = (await response.json()) as Explanation;
+      setExplanation(data);
+    } catch (caught) {
+      setExplanationError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not generate a grounded explanation."
+      );
+    } finally {
+      setExplanationLoading(false);
+    }
+  };
+
   const reset = () => {
     setStep(0);
     setResult(null);
@@ -596,11 +656,15 @@ export default function CheckPage() {
     setSymptomText("");
     setClarifyingQuestion(null);
     setReceipt(null);
+    setExplanation(null);
+    setExplanationError(null);
   };
 
   const chooseOption = (option: MatchOption) => {
     setSelectedOption(option);
     setReceipt(null);
+    setExplanation(null);
+    setExplanationError(null);
     setStep(4);
   };
 
@@ -1140,14 +1204,68 @@ export default function CheckPage() {
               ) : null}
 
               {result.status === "verified_match" && result.exact ? (
-                <div className="option-grid">
-                  <OptionCard
-                    option={result.exact}
-                    source={sourceFor(result.exact.compatibility.sourceId)}
-                    selected={selectedOption?.part.id === result.exact.part.id}
-                    onChoose={() => chooseOption(result.exact!)}
-                  />
-                </div>
+                <>
+                  <div className="option-grid">
+                    <OptionCard
+                      option={result.exact}
+                      source={sourceFor(result.exact.compatibility.sourceId)}
+                      selected={selectedOption?.part.id === result.exact.part.id}
+                      onChoose={() => chooseOption(result.exact!)}
+                    />
+                  </div>
+                  <div className="explanation-panel">
+                    <div className="option-top">
+                      <span className="badge-verified">
+                        Grounded AI explanation
+                      </span>
+                      <button
+                        className="button ghost"
+                        type="button"
+                        onClick={() => void handleExplain(result.exact!)}
+                        disabled={explanationLoading}
+                      >
+                        {explanationLoading
+                          ? "Explaining…"
+                          : explanation
+                            ? "Explain again"
+                            : "Explain with AI"}
+                      </button>
+                    </div>
+                    {explanation ? (
+                      <>
+                        <p className="option-reason">
+                          {explanation.explanation}
+                        </p>
+                        <p className="hint">
+                          Source:{" "}
+                          <a
+                            className="source-link"
+                            href={explanation.source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {explanation.source.publisher} ↗
+                          </a>
+                          {" · "}
+                          {explanation.ai
+                            ? "AI-generated, citation-validated"
+                            : "Catalog fallback"}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="hint">
+                        The catalog decides fitment. AI may explain it only from
+                        the cited source, and the citation is validated.
+                      </p>
+                    )}
+                    {explanationError ? (
+                      <div className="notice notice-warning">
+                        {explanationError} The catalog evidence above remains
+                        authoritative.
+                      </div>
+                    ) : null}
+                  </div>
+                </>
               ) : null}
 
               {result.lowerCapacity.length > 0 ? (

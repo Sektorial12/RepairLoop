@@ -1165,3 +1165,21 @@ h3 {
   font-size: 0.74rem;
 }
 
+.explanation-panel {
+  border: 1px solid #b7ddd6;
+  border-radius: 18px;
+  background: #f2fbf8;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.explanation-panel .option-top {
+  margin-bottom: 0.5rem;
+}
+
+.explanation-panel .button {
+  min-height: 2.2rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+}
+
