@@ -24,11 +24,21 @@ async function postJson<T>(route: string, body: unknown): Promise<T> {
   let response: Response | null = null;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    response = await fetch(`${BASE}${route}`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body)
-    });
+    try {
+      response = await fetch(`${BASE}${route}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(90000)
+      });
+    } catch (error) {
+      if (attempt === 0) {
+        console.log(`network error on ${route}; retrying in 10s`);
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        continue;
+      }
+      throw error;
+    }
 
     const retryable = [429, 502, 503, 504].includes(response.status);
     if (retryable && attempt === 0) {
