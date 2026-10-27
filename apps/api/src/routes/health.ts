@@ -23,4 +23,11 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
 
   app.get("/health", status);
   app.get("/api/status", status);
+  app.get("/ready", async (_request, reply) => {
+    const db = await checkDb();
+    if (db !== "up") {
+      return reply.code(503).send({ ok: false, db });
+    }
+    return { ok: true, db };
+  });
 }

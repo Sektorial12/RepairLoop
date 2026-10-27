@@ -296,11 +296,18 @@ export default function CatalogPage() {
           </div>
 
           <footer className="footer">
-            <p>
-              RepairLoop is a hackathon prototype. Prices are sandbox demo
-              values. Dell is a trademark of Dell Inc.; RepairLoop is not
-              affiliated with or endorsed by Dell.
-            </p>
+            <div>
+              <p>
+                RepairLoop is a hackathon prototype. Prices are sandbox demo
+                values. Dell is a trademark of Dell Inc.; RepairLoop is not
+                affiliated with or endorsed by Dell.
+              </p>
+              <div className="footer-links">
+                <Link href="/privacy">Privacy</Link>
+                <Link href="/terms">Terms</Link>
+                <Link href="/ai-disclosure">AI disclosure</Link>
+              </div>
+            </div>
             <span>Repair the right thing, with the right part.</span>
           </footer>
         </div>

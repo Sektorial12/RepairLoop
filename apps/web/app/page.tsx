@@ -213,11 +213,18 @@ export default function HomePage() {
         </section>
 
         <footer className="footer">
-          <p>
-            RepairLoop is a hackathon prototype. Sandbox payments only. Dell is
-            a trademark of Dell Inc.; RepairLoop is not affiliated with or
-            endorsed by Dell.
-          </p>
+          <div>
+            <p>
+              RepairLoop is a hackathon prototype. Sandbox payments only. Dell
+              is a trademark of Dell Inc.; RepairLoop is not affiliated with or
+              endorsed by Dell.
+            </p>
+            <div className="footer-links">
+              <a href="/privacy">Privacy</a>
+              <a href="/terms">Terms</a>
+              <a href="/ai-disclosure">AI disclosure</a>
+            </div>
+          </div>
           <span>Repair the right thing, with the right part.</span>
         </footer>
       </div>

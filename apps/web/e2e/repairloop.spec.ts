@@ -16,6 +16,8 @@ test("home explains the promise and links to the catalog", async ({ page }) => {
     "Repair the right thing"
   );
   await expect(page.getByRole("link", { name: "Catalog" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Privacy" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "AI disclosure" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Check my laptop battery" })).toBeVisible();
 });
 

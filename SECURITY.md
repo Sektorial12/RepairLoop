@@ -12,8 +12,9 @@
 - PayPal Sandbox only; `DEMO_MODE=true` blocks a live PayPal base and no real money is taken.
 - Amounts are computed server-side from the verified catalog. Never trust a client-provided amount.
 - Capture is server-side; success is shown only after a verified `COMPLETED` capture.
-- Verify webhook signatures using the raw request body and the configured webhook ID.
+- Verify webhook signatures using the raw request body and the configured webhook ID; reject transmissions outside a 15-minute window.
 - Deduplicate by PayPal event ID before state changes; apply only monotonic status transitions (no approved/capture replay downgrade).
+- Validate image magic bytes, not only the declared MIME type.
 - Use idempotency keys for order creation and capture; build return/cancel URLs only from the CORS allowlist and create a fresh order after cancel/failure.
 - Do not collect or store card data.
 
@@ -21,7 +22,7 @@
 
 - CORS allowlist only the deployed frontend origins.
 - Rate-limit all endpoints globally by Cloudflare client IP (`CF-Connecting-IP`) or socket address, never client-supplied `X-Forwarded-For`; apply a stricter AI limit; exempt PayPal webhooks because signature verification is the gate.
-- Send Helmet-style API headers; the web app sends frame denial, CSP `frame-ancestors`, referrer policy, permissions policy, and HSTS.
+- Send Helmet-style API headers; the web app sends a full CSP (scripts, frames, images, connections, form-action, frame-ancestors), frame denial, referrer policy, permissions policy, and HSTS.
 - Deduplicate webhook events by event ID and reject unverified signatures.
 - Validate all request bodies with Zod.
 - Upload limits: images only, 6 MB, no executables; strip metadata where possible.
@@ -33,6 +34,7 @@
 ## Data
 
 - Store only the fields needed for a repair case: model, capacities, health %, confirmed part number, selected part, and payment references.
+- Prototype privacy, terms, and AI disclosure are linked in the app footer.
 - Webhook rows store event ID/type, order/capture IDs, and amount/currency only; do not persist payer name, email, address, or full PayPal payloads.
 - Do not store the full battery report, label image, serial number, or service tag.
 - Redact serials/service tags in screenshots, videos, and the repository.

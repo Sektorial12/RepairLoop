@@ -23,6 +23,12 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Catalog check
+        run: npm run catalog:check
+
+      - name: Production dependency audit
+        run: npm audit --omit=dev
+
       - name: Build API
         run: npm run build:api
 

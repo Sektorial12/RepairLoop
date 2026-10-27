@@ -382,6 +382,11 @@ export async function verifyPayPalWebhook(params: {
     return false;
   }
 
+  const transmittedAt = Date.parse(transmissionTime);
+  if (!Number.isFinite(transmittedAt)) return false;
+  const ageMs = Date.now() - transmittedAt;
+  if (ageMs > 15 * 60 * 1000 || ageMs < -5 * 60 * 1000) return false;
+
   const certificate = await getCertificate(certificateUrl);
   const signature = Buffer.from(transmissionSignature, "base64");
   const checksum = crc32(params.rawBody);

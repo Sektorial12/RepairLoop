@@ -119,5 +119,6 @@ The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the de
 - Security headers, a global API rate limit, and signature-verified PayPal webhooks are enabled.
 - No secrets, card data, or personal data in the repository.
 - Sandbox demo only; this is not a real parts store.
+- Prototype privacy, terms, and AI disclosure are linked in the app footer.
 
 Dell is a trademark of Dell Inc. RepairLoop is not affiliated with or endorsed by Dell.
