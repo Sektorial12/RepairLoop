@@ -16,7 +16,7 @@ services:
       - key: DEMO_MODE
         value: "true"
       - key: GEMINI_MODEL
-        value: gemini-3.5-flash-lite
+        sync: false
       - key: PAYPAL_API_BASE
         value: https://api-m.sandbox.paypal.com
       - key: DATABASE_URL

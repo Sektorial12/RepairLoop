@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { isCompletedOrder } from "../src/routes/checkout.js";
 
 type FetchCall = [string, RequestInit];
 
@@ -17,6 +16,7 @@ describe("PayPal client", () => {
     vi.stubEnv("PAYPAL_CLIENT_SECRET", "test-secret");
     vi.stubEnv("PAYPAL_API_BASE", "https://api-m.sandbox.paypal.com");
     vi.stubEnv("PAYPAL_WEBHOOK_ID", "test-webhook");
+    vi.stubEnv("GEMINI_MODEL", "test-model");
   });
 
   afterEach(() => {
@@ -205,7 +205,9 @@ describe("PayPal client", () => {
     expect(isCompletedCapture(response, undefined)).toBe(false);
   });
 
-  it("treats a captured completed order as the duplicate guard", () => {
+  it("treats a captured completed order as the duplicate guard", async () => {
+    const { isCompletedOrder } = await import("../src/routes/checkout.js");
+
     expect(
       isCompletedOrder({ status: "completed", paypalCaptureId: "CAP-1" })
     ).toBe(true);

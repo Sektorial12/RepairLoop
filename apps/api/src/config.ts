@@ -27,7 +27,7 @@ const EnvSchema = z.object({
     .string()
     .default("http://localhost:3000,http://127.0.0.1:3000"),
   GEMINI_API_KEY: z.string().min(1).optional(),
-  GEMINI_MODEL: z.string().default("gemini-3.5-flash-lite"),
+  GEMINI_MODEL: z.string().min(1).optional(),
   AI_ENABLED: boolFromString,
   PAYPAL_CLIENT_ID: z.string().min(1).optional(),
   PAYPAL_CLIENT_SECRET: z.string().min(1).optional(),

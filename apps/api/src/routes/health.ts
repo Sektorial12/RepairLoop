@@ -8,7 +8,7 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
     service: "repairloop-api",
     version: serviceVersion,
     db: await checkDb(),
-    aiConfigured: Boolean(env.GEMINI_API_KEY),
+    aiConfigured: Boolean(env.GEMINI_API_KEY && env.GEMINI_MODEL),
     paypalConfigured: Boolean(
       env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET
     ),

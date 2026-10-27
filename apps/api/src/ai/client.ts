@@ -27,7 +27,9 @@ export interface ImageInput {
 let client: GoogleGenAI | null = null;
 
 export function aiConfigured(): boolean {
-  return Boolean(env.AI_ENABLED && env.GEMINI_API_KEY);
+  return Boolean(
+    env.AI_ENABLED && env.GEMINI_API_KEY && env.GEMINI_MODEL
+  );
 }
 
 function getClient(): GoogleGenAI | null {
@@ -88,6 +90,11 @@ export async function generateJson<T>({
     throw new AiError("not_configured", "Gemini is not configured");
   }
 
+  const model = env.GEMINI_MODEL;
+  if (!model) {
+    throw new AiError("not_configured", "Gemini model is not configured");
+  }
+
   const parts: Part[] = [{ text: prompt }];
   if (image) {
     parts.push({
@@ -103,7 +110,7 @@ export async function generateJson<T>({
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
       const call = ai.models.generateContent({
-        model: env.GEMINI_MODEL,
+        model,
         contents: [{ role: "user", parts }],
         config: {
           responseMimeType: "application/json",

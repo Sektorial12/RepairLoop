@@ -4,7 +4,7 @@
 
 - PayPal client ID/secret, Gemini API key, webhook ID, and database URL live in a server-side secret store, never in the repository.
 - Never commit secrets, `.env` files, SSH keys, tokens, or service-tag/serial data.
-- The frontend may receive only public values (e.g., `NEXT_PUBLIC_API_BASE_URL`; PayPal client ID if the chosen v6 path requires it).
+- The frontend may receive only public values (e.g., `NEXT_PUBLIC_API_BASE_URL`; the PayPal public client ID).
 - Rotate any credential that may have been exposed outside the secret store.
 
 ## Payments

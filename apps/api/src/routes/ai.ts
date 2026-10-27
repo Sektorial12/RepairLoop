@@ -104,8 +104,7 @@ function sendAiError(
 export async function aiRoutes(app: FastifyInstance): Promise<void> {
   app.get("/ai/health", async () => ({
     configured: aiConfigured(),
-    enabled: env.AI_ENABLED,
-    model: env.GEMINI_MODEL
+    enabled: env.AI_ENABLED
   }));
 
   app.post(
@@ -139,7 +138,6 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
       });
       request.log.info(
         {
-          model: env.GEMINI_MODEL,
           latencyMs: Date.now() - startedAt,
           confidence: extraction.confidence
         },
@@ -148,7 +146,6 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
 
       return {
         ok: true,
-        model: env.GEMINI_MODEL,
         extraction
       };
     } catch (error) {
@@ -187,7 +184,6 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
       });
       request.log.info(
         {
-          model: env.GEMINI_MODEL,
           latencyMs: Date.now() - startedAt,
           confidence: extraction.confidence
         },
@@ -196,7 +192,6 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
 
       return {
         ok: true,
-        model: env.GEMINI_MODEL,
         extraction
       };
     } catch (error) {
@@ -233,7 +228,6 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
       });
       request.log.info(
         {
-          model: env.GEMINI_MODEL,
           latencyMs: Date.now() - startedAt,
           confidence: extraction.confidence
         },
@@ -242,7 +236,6 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
 
       return {
         ok: true,
-        model: env.GEMINI_MODEL,
         extraction
       };
     } catch (error) {
@@ -340,7 +333,6 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
         });
         request.log.info(
           {
-            model: env.GEMINI_MODEL,
             latencyMs: Date.now() - startedAt,
             confidence: extraction.confidence
           },

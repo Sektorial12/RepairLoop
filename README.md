@@ -23,7 +23,7 @@ Dell lists three battery capacities for the Latitude 5400 — 42Wh, 51Wh, and 68
 - **Web:** Next.js 16 + React 19
 - **API:** Fastify 5 + TypeScript
 - **Database:** Neon PostgreSQL + Drizzle ORM
-- **AI:** Gemini 3.5 Flash-Lite (free tier), structured JSON, manual fallback
+- **AI:** Gemini (configured server-side), structured JSON, manual fallback
 - **Payments:** PayPal Orders v2 + JavaScript SDK (v5 Buttons), Sandbox only
 - **Repo:** npm workspaces at the repository root
 
@@ -34,7 +34,7 @@ Run these commands from the repository root.
 ```bash
 npm install
 cp .env.example .env
-# Fill DATABASE_URL, GEMINI_API_KEY, PayPal Sandbox values in .env
+# Fill DATABASE_URL, GEMINI_API_KEY, GEMINI_MODEL, PayPal Sandbox values in .env
 npm run db:generate
 npm run db:push
 npm run db:seed
@@ -59,7 +59,7 @@ The API loads the repository-root `.env` first, then `apps/api/.env`. No secrets
 - Real completed Sandbox receipt: `https://repair-loop-nu.vercel.app/receipt/7LS832802T701580V`
 - Catalog: `https://repair-loop-nu.vercel.app/catalog`
 
-PayPal is Sandbox-only. The demo video shows the full approval, capture, and receipt path; reviewers who want to run a fresh payment can use a PayPal Sandbox buyer. Do not use a real PayPal account. The catalog shows demo prices and does not claim live stock or shipping.
+PayPal is Sandbox-only. The submission demo video is the judge completion path and shows the full approval, capture, and receipt flow; the hosted app does not include buyer credentials. Do not use a real PayPal account. The catalog shows demo prices and does not claim live stock or shipping.
 
 Health check:
 
@@ -84,7 +84,7 @@ curl -sS http://127.0.0.1:3002/api/match \
 ## Verify
 
 ```bash
-npm test                 # API matcher + PayPal unit tests
+npm test                 # API, webhook, and PayPal unit tests
 npm run typecheck
 npm run build
 npx playwright install chromium
