@@ -4,7 +4,6 @@ import type {
   FastifyRequest
 } from "fastify";
 import { desc, eq } from "drizzle-orm";
-import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { loadCatalog } from "../catalog/load.js";
 import { corsOrigins } from "../config.js";
@@ -28,9 +27,18 @@ import {
 type Database = NonNullable<typeof db>;
 type OrderRow = typeof orders.$inferSelect;
 
+type ReceiptPartSnapshot = {
+  partNumber: string;
+  partName: string;
+  seller: string | null;
+  sourcePublisher: string | null;
+  sourceUrl: string | null;
+};
+
 const CreateOrderBodySchema = z.object({
   repairCaseId: z.string().uuid(),
-  forceNew: z.boolean().optional().default(false)
+  forceNew: z.boolean().optional().default(false),
+  attemptId: z.string().min(1).max(100)
 });
 
 const CaptureParamsSchema = z.object({
@@ -69,17 +77,11 @@ function sendPayPalError(
   return reply.code(500).send({ error: "internal_error" });
 }
 
-async function buildReceipt(
+async function loadReceiptPart(
   database: Database,
-  order: OrderRow,
-  captureId: string,
-  amount: string,
-  currency: string,
-  capturedAt?: string
-) {
-  if (!order.repairCaseId) {
-    throw new Error("Order has no repair case");
-  }
+  order: OrderRow
+): Promise<ReceiptPartSnapshot | null> {
+  if (!order.repairCaseId) return null;
 
   const [repairCase] = await database
     .select()
@@ -87,9 +89,7 @@ async function buildReceipt(
     .where(eq(repairCases.id, order.repairCaseId))
     .limit(1);
 
-  if (!repairCase?.selectedPartId) {
-    throw new Error("Repair case has no selected part");
-  }
+  if (!repairCase?.selectedPartId) return null;
 
   const [part] = await database
     .select()
@@ -97,9 +97,7 @@ async function buildReceipt(
     .where(eq(parts.id, repairCase.selectedPartId))
     .limit(1);
 
-  if (!part) {
-    throw new Error("Selected part not found");
-  }
+  if (!part) return null;
 
   const [source] = await database
     .select()
@@ -108,15 +106,70 @@ async function buildReceipt(
     .limit(1);
 
   return {
+    partNumber: part.partNumber,
+    partName: part.name,
+    seller: part.seller,
+    sourcePublisher: source?.publisher ?? null,
+    sourceUrl: source?.url ?? null
+  };
+}
+
+async function loadSnapshotFromEvents(
+  database: Database,
+  order: OrderRow
+): Promise<ReceiptPartSnapshot | null> {
+  const rows = await database
+    .select({ payload: paymentEvents.payload })
+    .from(paymentEvents)
+    .where(eq(paymentEvents.orderId, order.id));
+
+  for (const row of rows) {
+    const payload = row.payload as {
+      snapshot?: ReceiptPartSnapshot | null;
+    } | null;
+    if (payload?.snapshot?.partNumber) {
+      return payload.snapshot;
+    }
+  }
+
+  return null;
+}
+
+async function resolveReceiptPart(
+  database: Database,
+  order: OrderRow
+): Promise<ReceiptPartSnapshot | null> {
+  return (
+    (await loadSnapshotFromEvents(database, order)) ??
+    (await loadReceiptPart(database, order))
+  );
+}
+
+async function buildReceipt(
+  database: Database,
+  order: OrderRow,
+  captureId: string,
+  amount: string,
+  currency: string,
+  capturedAt?: string
+) {
+  const snapshot = await resolveReceiptPart(database, order);
+
+  if (!snapshot) {
+    throw new Error("Selected part not found");
+  }
+
+  return {
     orderId: order.paypalOrderId,
     captureId,
     status: "COMPLETED",
     amount,
     currency,
-    partNumber: part.partNumber,
-    partName: part.name,
-    sourcePublisher: source?.publisher ?? null,
-    sourceUrl: source?.url ?? null,
+    partNumber: snapshot.partNumber,
+    partName: snapshot.partName,
+    seller: snapshot.seller,
+    sourcePublisher: snapshot.sourcePublisher,
+    sourceUrl: snapshot.sourceUrl,
     capturedAt: capturedAt ?? new Date().toISOString()
   };
 }
@@ -231,7 +284,7 @@ export async function checkoutRoutes(
         description: `${selected.part.name} — ${selected.part.partNumber}`,
         customId: `${repairCase.id}|${selected.part.id}`,
         referenceId: selected.part.id,
-        requestId: `repairloop-${repairCase.id}-${randomUUID()}`,
+        requestId: `repairloop-${repairCase.id}-${parsed.data.attemptId}`,
         returnUrl,
         cancelUrl
       });
@@ -310,6 +363,11 @@ export async function checkoutRoutes(
         return reply.code(422).send({ error: "order_missing_paypal_id" });
       }
 
+      const snapshot = await loadReceiptPart(database, order);
+      if (!snapshot) {
+        return reply.code(422).send({ error: "receipt_part_unavailable" });
+      }
+
       const captureResponse = await capturePayPalOrder(
         order.paypalOrderId,
         `repairloop-capture-${order.id}`
@@ -349,7 +407,18 @@ export async function checkoutRoutes(
           id: `capture-${capture.id}`,
           orderId: order.id,
           eventType: "PAYMENT.CAPTURE.COMPLETED",
-          payload: captureResponse,
+          payload: {
+            snapshot,
+            capture: {
+              id: capture.id,
+              status: capture.status,
+              amount: {
+                value: capture.amount.value,
+                currency_code: capture.amount.currency_code
+              },
+              create_time: capture.create_time ?? null
+            }
+          },
           verified: true
         })
         .onConflictDoNothing();
@@ -392,44 +461,16 @@ export async function checkoutRoutes(
       return reply.code(404).send({ error: "order_not_found" });
     }
 
-    let part:
-      | {
-          partNumber: string;
-          name: string;
-          sourcePublisher: string | null;
-          sourceUrl: string | null;
+    const snapshot = await resolveReceiptPart(database, order);
+    const part = snapshot
+      ? {
+          partNumber: snapshot.partNumber,
+          name: snapshot.partName,
+          seller: snapshot.seller,
+          sourcePublisher: snapshot.sourcePublisher,
+          sourceUrl: snapshot.sourceUrl
         }
-      | null = null;
-
-    if (order.repairCaseId) {
-      const [repairCase] = await database
-        .select()
-        .from(repairCases)
-        .where(eq(repairCases.id, order.repairCaseId))
-        .limit(1);
-
-      if (repairCase?.selectedPartId) {
-        const [selectedPart] = await database
-          .select()
-          .from(parts)
-          .where(eq(parts.id, repairCase.selectedPartId))
-          .limit(1);
-
-        if (selectedPart) {
-          const [source] = await database
-            .select()
-            .from(sources)
-            .where(eq(sources.id, selectedPart.sourceId))
-            .limit(1);
-          part = {
-            partNumber: selectedPart.partNumber,
-            name: selectedPart.name,
-            sourcePublisher: source?.publisher ?? null,
-            sourceUrl: source?.url ?? null
-          };
-        }
-      }
-    }
+      : null;
 
     const events = await database
       .select({

@@ -38,7 +38,7 @@ cp .env.example .env
 npm run db:generate
 npm run db:push
 npm run db:seed
-# For catalog-only updates after the first seed (non-destructive):
+# db:seed is non-destructive; for catalog-only updates:
 # npm run db:sync-catalog
 # Scrub old full PayPal webhook payloads to metadata only:
 # npm run db:scrub-events
@@ -88,7 +88,7 @@ npm test                 # API, webhook, and PayPal unit tests
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run test:e2e         # 11 browser tests: desktop + mobile Chromium; WebKit mobile in CI
+npm run test:e2e         # 12 browser tests: desktop + mobile Chromium; WebKit mobile in CI
 ```
 
 The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the deployed API.

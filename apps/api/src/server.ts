@@ -15,8 +15,18 @@ import { paypalRoutes } from "./routes/paypal.js";
 import { repairCaseRoutes } from "./routes/repair-cases.js";
 import { webhookRoutes } from "./routes/webhooks.js";
 
+function rateLimitKey(request: FastifyRequest): string {
+  // Cloudflare sets this header; do not trust client-supplied X-Forwarded-For.
+  const cf = request.headers["cf-connecting-ip"];
+  const value = Array.isArray(cf) ? cf[0] : cf;
+  if (typeof value === "string" && value.trim()) {
+    return `cf:${value.trim()}`;
+  }
+
+  return `socket:${request.socket.remoteAddress ?? "unknown"}`;
+}
+
 const app = Fastify({
-  trustProxy: true,
   logger: {
     level: env.LOG_LEVEL
   },
@@ -36,7 +46,8 @@ await app.register(helmet, {
 
 await app.register(rateLimit, {
   max: 120,
-  timeWindow: "1 minute"
+  timeWindow: "1 minute",
+  keyGenerator: rateLimitKey
 });
 
 // Keep the raw JSON body for PayPal webhook signature verification.

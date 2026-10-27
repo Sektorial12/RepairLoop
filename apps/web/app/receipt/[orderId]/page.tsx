@@ -18,6 +18,7 @@ type ReceiptData = {
   part: {
     partNumber: string;
     name: string;
+    seller: string | null;
     sourcePublisher: string | null;
     sourceUrl: string | null;
   } | null;
@@ -154,6 +155,11 @@ export default function ReceiptPage() {
                   {money(data.order.amount, data.order.currency)} ·{" "}
                   {data.order.status.toUpperCase()}
                 </p>
+                {data.part?.seller ? (
+                  <p className="hint">
+                    Seller (sandbox demo): {data.part.seller}
+                  </p>
+                ) : null}
                 <p className="hint">
                   Order {data.order.paypalOrderId} ·{" "}
                   {new Date(data.order.createdAt).toLocaleString()}

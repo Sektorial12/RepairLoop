@@ -21,6 +21,7 @@ export type Receipt = {
   currency: string;
   partNumber: string;
   partName: string;
+  seller?: string | null;
   sourcePublisher: string | null;
   sourceUrl: string | null;
   capturedAt: string;
@@ -121,9 +122,11 @@ export function PayPalCheckout({
     "loading" | "ready" | "error"
   >("loading");
   const [error, setError] = useState<string | null>(null);
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const repairCaseIdRef = useRef<string | null>(null);
   const forceNewOrderRef = useRef(false);
+  const attemptIdRef = useRef<string>(globalThis.crypto.randomUUID());
 
   useEffect(() => {
     let cancelled = false;
@@ -194,7 +197,8 @@ export function PayPalCheckout({
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               repairCaseId: repairCaseIdRef.current,
-              forceNew: forceNewOrderRef.current
+              forceNew: forceNewOrderRef.current,
+              attemptId: attemptIdRef.current
             })
           }
         );
@@ -213,6 +217,7 @@ export function PayPalCheckout({
         const orderData = (await orderResponse.json()) as {
           orderId: string;
         };
+        setLastOrderId(orderData.orderId);
         forceNewOrderRef.current = false;
         return orderData.orderId;
       };
@@ -230,10 +235,12 @@ export function PayPalCheckout({
           const orderId = data.orderID ?? data.orderId;
           if (!orderId) {
             forceNewOrderRef.current = true;
+            attemptIdRef.current = globalThis.crypto.randomUUID();
             setStatus("ready");
             setError("PayPal returned no order ID.");
             return;
           }
+          setLastOrderId(orderId);
 
           try {
             const response = await fetch(
@@ -261,25 +268,28 @@ export function PayPalCheckout({
             onCaptured(receipt);
           } catch (caught) {
             forceNewOrderRef.current = true;
+            attemptIdRef.current = globalThis.crypto.randomUUID();
             setStatus("ready");
             setError(
               caught instanceof Error &&
                 (caught.name === "TimeoutError" ||
                   caught.name === "AbortError")
-                ? "Payment capture timed out. Do not assume success; retry or check the order."
+                ? `Payment capture timed out. Order ${orderId}. Do not assume success; open the receipt or retry.`
                 : caught instanceof Error
-                  ? `${caught.message} Do not assume success; retry or check the order.`
-                  : "Payment was approved, but capture failed. Do not assume success."
+                  ? `${caught.message} Order ${orderId}. Do not assume success; open the receipt or retry.`
+                  : `Payment was approved, but capture failed. Order ${orderId}. Do not assume success.`
             );
           }
         },
         onCancel: () => {
           forceNewOrderRef.current = true;
+          attemptIdRef.current = globalThis.crypto.randomUUID();
           setStatus("ready");
           setError("Payment cancelled. No charge.");
         },
         onError: () => {
           forceNewOrderRef.current = true;
+          attemptIdRef.current = globalThis.crypto.randomUUID();
           setStatus("ready");
           setError("PayPal could not complete the payment. No charge.");
         }
@@ -321,6 +331,17 @@ export function PayPalCheckout({
         <div className="notice notice-danger" role="alert">
           {error}
         </div>
+      ) : null}
+      {lastOrderId ? (
+        <p className="hint">
+          Order <code>{lastOrderId}</code> ·{" "}
+          <a
+            className="source-link"
+            href={`/receipt/${encodeURIComponent(lastOrderId)}`}
+          >
+            Open receipt
+          </a>
+        </p>
       ) : null}
     </div>
   );

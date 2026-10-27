@@ -63,6 +63,18 @@ test("receipt survives a refresh and shows the verified capture", async ({
   await expect(page.getByText("CAP-TEST-123").first()).toBeVisible();
 });
 
+test("PayPal return recovers the order into the receipt lookup", async ({
+  page
+}) => {
+  await mockModels(page);
+  await page.goto("/check?paypal=return&token=TEST-ORDER");
+
+  await expect(
+    page.getByText(/Returned from PayPal. Order TEST-ORDER/)
+  ).toBeVisible();
+  await expect(page.getByLabel("Payment recovery")).toHaveValue("TEST-ORDER");
+});
+
 test("PayPal cancel return shows a no-charge notice", async ({ page }) => {
   await mockModels(page);
   await page.goto("/check?paypal=cancel");
@@ -121,11 +133,17 @@ test("check starts empty and requires an installed part number", async ({
   await page.getByRole("button", { name: "Continue to battery" }).click();
 
   await expect(page.getByLabel("Installed part number")).toHaveValue("");
-  await expect(page.getByLabel("Design capacity (mWh)")).toHaveValue("");
-  await expect(page.getByLabel("Full charge capacity (mWh)")).toHaveValue("");
+  await expect(page.getByLabel("Design capacity (mWh, optional)")).toHaveValue("");
+  await expect(page.getByLabel("Full charge capacity (mWh, optional)")).toHaveValue("");
   await expect(
     page.getByRole("button", { name: "Continue to symptoms" })
   ).toBeDisabled();
+
+  await page.getByLabel("Installed part number").fill("X77XY");
+
+  await expect(
+    page.getByRole("button", { name: "Continue to symptoms" })
+  ).toBeEnabled();
 });
 
 test.describe("check flow scenarios", () => {

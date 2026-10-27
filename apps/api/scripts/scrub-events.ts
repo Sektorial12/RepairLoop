@@ -17,8 +17,14 @@ type StoredEvent = {
       value?: string;
       currency_code?: string;
     };
-    supplementary_data?: unknown;
+    supplementary_data?: {
+      related_ids?: {
+        order_id?: string;
+      };
+    };
   };
+  snapshot?: unknown;
+  capture?: unknown;
 };
 
 const database = db;
@@ -45,8 +51,17 @@ try {
                   currency_code: amount.currency_code ?? null
                 }
               : null,
-            supplementary_data: payload.resource?.supplementary_data ?? null
-          }
+            supplementary_data: payload.resource?.supplementary_data?.related_ids
+              ?.order_id
+              ? {
+                  related_ids: {
+                    order_id: payload.resource.supplementary_data.related_ids.order_id
+                  }
+                }
+              : null
+          },
+          snapshot: payload.snapshot ?? null,
+          capture: payload.capture ?? null
         }
       })
       .where(eq(paymentEvents.id, row.id));

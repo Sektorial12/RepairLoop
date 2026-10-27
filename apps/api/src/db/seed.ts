@@ -1,12 +1,8 @@
 import { db, pool } from "./client.js";
 import {
-  auditLog,
   compatibility,
   deviceModels,
-  orders,
   parts,
-  paymentEvents,
-  repairCases,
   sources,
   symptomRules,
   symptoms
@@ -20,25 +16,35 @@ if (!db) {
 const database = db;
 
 try {
-  await database.delete(paymentEvents);
-  await database.delete(orders);
-  await database.delete(repairCases);
-  await database.delete(compatibility);
-  await database.delete(symptomRules);
-  await database.delete(symptoms);
-  await database.delete(parts);
-  await database.delete(deviceModels);
-  await database.delete(sources);
-  await database.delete(auditLog);
+  // Non-destructive: never delete orders, repair cases, payment events, or
+  // audit rows. Existing catalog rows are left in place; use
+  // `db:sync-catalog` to update them.
+  await database
+    .insert(sources)
+    .values(catalogData.sources)
+    .onConflictDoNothing();
+  await database
+    .insert(deviceModels)
+    .values(catalogData.models)
+    .onConflictDoNothing();
+  await database
+    .insert(parts)
+    .values(catalogData.parts)
+    .onConflictDoNothing();
+  await database
+    .insert(compatibility)
+    .values(catalogData.compatibility)
+    .onConflictDoNothing();
+  await database
+    .insert(symptoms)
+    .values(catalogData.symptoms)
+    .onConflictDoNothing();
+  await database
+    .insert(symptomRules)
+    .values(catalogData.symptomRules)
+    .onConflictDoNothing();
 
-  await database.insert(sources).values(catalogData.sources);
-  await database.insert(deviceModels).values(catalogData.models);
-  await database.insert(parts).values(catalogData.parts);
-  await database.insert(compatibility).values(catalogData.compatibility);
-  await database.insert(symptoms).values(catalogData.symptoms);
-  await database.insert(symptomRules).values(catalogData.symptomRules);
-
-  console.log("Seed complete");
+  console.log("Seed complete (non-destructive)");
   console.log(
     JSON.stringify(
       {

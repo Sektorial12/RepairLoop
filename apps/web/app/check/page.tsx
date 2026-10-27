@@ -228,6 +228,7 @@ export default function CheckPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
+  const [lookupOrderId, setLookupOrderId] = useState("");
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
   const [explanation, setExplanation] = useState<Explanation | null>(null);
@@ -687,6 +688,13 @@ export default function CheckPage() {
     }
   };
 
+  const openReceipt = () => {
+    const id = lookupOrderId.trim();
+    if (id) {
+      window.location.assign(`/receipt/${encodeURIComponent(id)}`);
+    }
+  };
+
   const reset = () => {
     setStep(0);
     setResult(null);
@@ -720,6 +728,7 @@ export default function CheckPage() {
     setExplanation(null);
     setExplanationError(null);
     setPaymentNotice(null);
+    setLookupOrderId("");
   };
 
   const chooseOption = (option: MatchOption) => {
@@ -776,6 +785,18 @@ export default function CheckPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
+
+    if (params.get("paypal") === "return") {
+      const token = params.get("token") ?? "";
+      if (token) setLookupOrderId(token);
+      setPaymentNotice(
+        token
+          ? `Returned from PayPal. Order ${token}. Open the receipt to verify the capture.`
+          : "Returned from PayPal. Enter the order ID to verify the capture."
+      );
+      return;
+    }
+
     if (params.get("paypal") === "cancel") {
       setPaymentNotice(
         "Payment cancelled. No charge. Your repair case is still here; retry or edit the details."
@@ -902,6 +923,30 @@ export default function CheckPage() {
               </li>
             ))}
           </ol>
+
+          <div className="receipt-lookup">
+            <label className="field">
+              <span>Payment recovery</span>
+              <input
+                value={lookupOrderId}
+                onChange={(event) => setLookupOrderId(event.target.value)}
+                placeholder="PayPal order ID"
+                autoComplete="off"
+              />
+              <small>
+                Use the order ID from a PayPal return or confirmation to open its
+                receipt.
+              </small>
+            </label>
+            <button
+              className="button ghost"
+              type="button"
+              onClick={openReceipt}
+              disabled={!lookupOrderId.trim()}
+            >
+              Open receipt
+            </button>
+          </div>
 
           {paymentNotice ? (
             <div className="notice notice-warning" role="status">
@@ -1109,7 +1154,7 @@ export default function CheckPage() {
                   </small>
                 </label>
                 <label className="field">
-                  <span>Design capacity (mWh)</span>
+                  <span>Design capacity (mWh, optional)</span>
                   <input
                     value={designCapacityMwh}
                     onChange={(event) =>
@@ -1120,7 +1165,7 @@ export default function CheckPage() {
                   />
                 </label>
                 <label className="field">
-                  <span>Full charge capacity (mWh)</span>
+                  <span>Full charge capacity (mWh, optional)</span>
                   <input
                     value={fullChargeCapacityMwh}
                     onChange={(event) =>
@@ -1160,8 +1205,6 @@ export default function CheckPage() {
                   onClick={() => setStep(2)}
                   disabled={
                     !installedPartNumber.trim() ||
-                    !Number(designCapacityMwh) ||
-                    !Number(fullChargeCapacityMwh) ||
                     (extractionNeedsReview && !extractionConfirmed)
                   }
                 >

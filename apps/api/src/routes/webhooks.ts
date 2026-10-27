@@ -104,7 +104,14 @@ export async function webhookRoutes(
                 currency_code: resource.amount.currency_code ?? null
               }
             : null,
-          supplementary_data: resource.supplementary_data ?? null
+          supplementary_data: resource.supplementary_data?.related_ids
+            ?.order_id
+            ? {
+                related_ids: {
+                  order_id: resource.supplementary_data.related_ids.order_id
+                }
+              }
+            : null
         }
       };
 
@@ -126,7 +133,21 @@ export async function webhookRoutes(
         }
 
         if (order) {
-          const next = nextOrderStatus(order.status, eventType);
+          let next = nextOrderStatus(order.status, eventType);
+
+          if (
+            next === "completed" &&
+            eventType === "PAYMENT.CAPTURE.COMPLETED" &&
+            order.amount !== null &&
+            (resource.amount?.value !== order.amount ||
+              resource.amount?.currency_code !== order.currency)
+          ) {
+            request.log.warn(
+              { orderId: order.id },
+              "capture webhook amount/currency mismatch; order state unchanged"
+            );
+            next = null;
+          }
 
           if (next) {
             const update: {
