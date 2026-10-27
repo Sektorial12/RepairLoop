@@ -1,5 +1,17 @@
-import "dotenv/config";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
 import { z } from "zod";
+
+// The documented setup puts .env at the repo root; also allow apps/api/.env.
+dotenv.config({
+  path: path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../.env"
+  )
+});
+dotenv.config();
+
 
 const boolFromString = z
   .enum(["true", "false"])

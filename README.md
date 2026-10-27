@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/Sektorial12/RepairLoop/actions/workflows/ci.yml/badge.svg)](https://github.com/Sektorial12/RepairLoop/actions/workflows/ci.yml)
 
-RepairLoop turns a laptop battery report or label photo into a source-verified replacement-part decision, then completes the purchase with PayPal. AI helps with messy input; a curated, source-linked catalog decides fitment, price, and availability. If RepairLoop cannot verify a match, it says so and disables checkout.
+RepairLoop turns a laptop battery report or label photo into a source-linked replacement-part decision, then completes the sandbox purchase with PayPal. AI helps with messy input; a curated catalog decides fitment and demo price. Live stock, shipping, and availability are not claimed. If RepairLoop cannot verify a match, it says so and disables checkout.
 
 **Status:** Working prototype. The verified/no-match/safety battery check flow, live Gemini extraction, and PayPal Sandbox checkout/capture are implemented. No fake paid state is shown.
 
@@ -22,7 +22,7 @@ Dell lists three battery capacities for the Latitude 5400 — 42Wh, 51Wh, and 68
 
 - **Web:** Next.js 16 + React 19
 - **API:** Fastify 5 + TypeScript
-- **Database:** PostgreSQL 14 + Drizzle ORM
+- **Database:** Neon PostgreSQL + Drizzle ORM
 - **AI:** Gemini 3.5 Flash-Lite (free tier), structured JSON, manual fallback
 - **Payments:** PayPal Orders v2 + JavaScript SDK (v5 Buttons), Sandbox only
 - **Repo:** npm workspaces at the repository root
@@ -43,6 +43,19 @@ npm run dev:web   # http://localhost:3000
 ```
 
 Once both are running, open the guided flow at `http://localhost:3000/check` or auto-run the demo at `http://localhost:3000/check?demo=1`. Browse the source-linked catalog at `http://localhost:3000/catalog`; completed sandbox orders are shareable at `/receipt/[orderId]`.
+
+The API loads the repository-root `.env` first, then `apps/api/.env`. No secrets belong in either tracked file.
+
+## Judge quick start
+
+- Hosted demo: `https://repair-loop-nu.vercel.app`
+- Guided demo: `https://repair-loop-nu.vercel.app/check?demo=1`
+- No-match: `https://repair-loop-nu.vercel.app/check?demo=no-match`
+- Safety stop: `https://repair-loop-nu.vercel.app/check?demo=safety`
+- Real completed Sandbox receipt: `https://repair-loop-nu.vercel.app/receipt/7LS832802T701580V`
+- Catalog: `https://repair-loop-nu.vercel.app/catalog`
+
+PayPal is Sandbox-only. Reviewer buyer credentials are supplied in the Devpost private field; do not use a real PayPal account. The buyer can complete a fresh capture without real money. The catalog shows demo prices and does not claim live stock or shipping.
 
 Health check:
 
@@ -71,7 +84,7 @@ npm test                 # API matcher + PayPal unit tests
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run test:e2e         # 10 browser tests: desktop + mobile Chromium; WebKit mobile in CI
+npm run test:e2e         # 11 browser tests: desktop + mobile Chromium; WebKit mobile in CI
 ```
 
 The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the deployed API.

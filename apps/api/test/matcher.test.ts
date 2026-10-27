@@ -37,15 +37,15 @@ describe("catalog matcher", () => {
     expect(result.exact?.part.partNumber).toBe("4GVMP");
   });
 
-  it("infers the 68Wh family from design capacity when the part number is absent", () => {
+  it("refuses to infer an exact part from capacity alone", () => {
     const result = matchCatalog(catalogData, {
       modelQuery: "Latitude 5400",
       designCapacityMwh: 68005,
       fullChargeCapacityMwh: 46907
     });
 
-    expect(result.status).toBe("verified_match");
-    expect(result.exact?.part.partNumber).toBe("4GVMP");
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("missing_identity");
   });
 
   it("marks the 68Wh 15.2V 3HWPP as unverified when it is the installed part", () => {

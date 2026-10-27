@@ -9,29 +9,31 @@
 
 ## Payments
 
-- PayPal Sandbox only; no real money.
+- PayPal Sandbox only; `DEMO_MODE=true` blocks a live PayPal base and no real money is taken.
 - Amounts are computed server-side from the verified catalog. Never trust a client-provided amount.
 - Capture is server-side; success is shown only after a verified `COMPLETED` capture.
 - Verify webhook signatures using the raw request body and the configured webhook ID.
-- Use idempotency keys for order creation, capture, and webhook processing.
+- Deduplicate by PayPal event ID before state changes; apply only monotonic status transitions (no approved/capture replay downgrade).
+- Use idempotency keys for order creation and capture; build return/cancel URLs only from the CORS allowlist and create a fresh order after cancel/failure.
 - Do not collect or store card data.
 
 ## API
 
 - CORS allowlist only the deployed frontend origins.
-- Rate-limit all endpoints globally, with a stricter limit on AI; exempt PayPal webhooks because signature verification is the gate.
-- Send Helmet-style security headers (`nosniff`, frame denial, referrer policy, HSTS).
+- Rate-limit all endpoints globally per client IP behind the trusted proxy, with a stricter limit on AI; exempt PayPal webhooks because signature verification is the gate.
+- Send Helmet-style API headers; the web app sends frame denial, CSP `frame-ancestors`, referrer policy, permissions policy, and HSTS.
 - Deduplicate webhook events by event ID and reject unverified signatures.
 - Validate all request bodies with Zod.
-- Upload limits: images only, 5 MB, no executables; strip metadata where possible.
+- Upload limits: images only, 6 MB, no executables; strip metadata where possible.
 - Bind to localhost in development; bind to the platform-provided host in production and terminate HTTPS at the reverse proxy.
 - Run the API with least privilege and process isolation.
-- Do not expose stack traces or secrets in error responses.
+- Do not expose stack traces or secrets in error responses; malformed JSON returns 400.
 - Log request metadata, not image contents or credentials.
 
 ## Data
 
 - Store only the fields needed for a repair case: model, capacities, health %, confirmed part number, selected part, and payment references.
+- Webhook rows store event ID/type, order/capture IDs, and amount/currency only; do not persist payer name, email, address, or full PayPal payloads.
 - Do not store the full battery report, label image, serial number, or service tag.
 - Redact serials/service tags in screenshots, videos, and the repository.
 - Use synthetic or own photos for the demo; obtain permission for any borrowed device or repair-shop footage.

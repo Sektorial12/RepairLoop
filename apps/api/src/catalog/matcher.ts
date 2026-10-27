@@ -157,17 +157,8 @@ export function matchCatalog(
   if (input.installedPartNumber) {
     installed = findPartByNumber(data.parts, input.installedPartNumber);
     if (!installed) return noMatch(["unknown_installed_part"], model);
-  } else if (input.designCapacityMwh) {
-    const designWh = input.designCapacityMwh / 1000;
-    const candidates = modelParts.filter(
-      ({ part }) => Math.abs(part.capacityWh - designWh) <= 1
-    );
-    installed =
-      candidates.find(({ part }) => part.status === "verified")?.part ??
-      candidates[0]?.part;
-
-    if (!installed) return noMatch(["unknown_capacity"], model);
   } else {
+    // Capacity alone is not a safe identity: 68Wh can be 7.6V or 15.2V.
     return noMatch(["missing_identity"], model);
   }
 

@@ -2,7 +2,7 @@ services:
   - type: web
     name: repairloop-api
     runtime: node
-    plan: free
+    plan: starter
     buildCommand: npm ci && npm run build:api
     startCommand: node apps/api/dist/server.js
     healthCheckPath: /live
@@ -26,4 +26,8 @@ services:
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: CORS_ORIGINS
         sync: false

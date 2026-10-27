@@ -89,6 +89,21 @@ describe("PayPal client", () => {
     });
   });
 
+  it("blocks a live PayPal base while demo mode is enabled", async () => {
+    vi.stubEnv("PAYPAL_API_BASE", "https://api-m.paypal.com");
+    vi.stubEnv("DEMO_MODE", "true");
+    vi.resetModules();
+
+    const { getPayPalPublicConfig, PayPalError } = await import(
+      "../src/paypal/client.js"
+    );
+
+    expect(() => getPayPalPublicConfig()).toThrow(PayPalError);
+    expect(() => getPayPalPublicConfig()).toThrow(
+      "Live PayPal is disabled in demo mode"
+    );
+  });
+
   it("maps a PayPal network timeout to an upstream error", async () => {
     const timeoutError = Object.assign(new Error("timed out"), {
       name: "TimeoutError"
@@ -221,6 +236,6 @@ describe("PayPal client", () => {
     ).toBe(false);
     expect(
       captureMatchesOrder({ amount: null, currency: "USD" }, capture)
-    ).toBe(true);
+    ).toBe(false);
   });
 });

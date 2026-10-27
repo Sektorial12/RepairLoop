@@ -209,15 +209,18 @@ export default function CheckPage() {
   const [step, setStep] = useState(0);
   const [models, setModels] = useState<Model[]>([]);
   const [modelsLoading, setModelsLoading] = useState(true);
-  const [modelId, setModelId] = useState("dell-latitude-5400");
-  const [installedPartNumber, setInstalledPartNumber] = useState("X77XY");
-  const [designCapacityMwh, setDesignCapacityMwh] = useState("68005");
-  const [fullChargeCapacityMwh, setFullChargeCapacityMwh] = useState("46907");
-  const [symptomTags, setSymptomTags] = useState<string[]>([
-    "battery_runtime_short"
-  ]);
+  const [modelId, setModelId] = useState("");
+  const [installedPartNumber, setInstalledPartNumber] = useState("");
+  const [designCapacityMwh, setDesignCapacityMwh] = useState("");
+  const [fullChargeCapacityMwh, setFullChargeCapacityMwh] = useState("");
+  const [symptomTags, setSymptomTags] = useState<string[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [labelFileName, setLabelFileName] = useState<string | null>(null);
+  const [reportPreview, setReportPreview] = useState<string | null>(null);
+  const [labelPreview, setLabelPreview] = useState<string | null>(null);
+  const [aiConsent, setAiConsent] = useState(false);
+  const [extractionNeedsReview, setExtractionNeedsReview] = useState(false);
+  const [extractionConfirmed, setExtractionConfirmed] = useState(false);
   const [result, setResult] = useState<MatchResult | null>(null);
   const [selectedOption, setSelectedOption] = useState<MatchOption | null>(
     null
@@ -360,6 +363,13 @@ export default function CheckPage() {
   const runMatch = async (
     overrides?: Partial<Payload>
   ): Promise<MatchResult | null> => {
+    if (extractionNeedsReview && !extractionConfirmed) {
+      setError(
+        "Review the extracted values and tick the confirmation box before matching."
+      );
+      return null;
+    }
+
     setLoading(true);
     setError(null);
     setPaymentNotice(null);
@@ -405,6 +415,16 @@ export default function CheckPage() {
     setSymptomTags(["battery_runtime_short"]);
     setFileName(null);
     setLabelFileName(null);
+    setReportPreview((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setLabelPreview((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setExtractionNeedsReview(false);
+    setExtractionConfirmed(false);
     setAiBusy(null);
     setAiMessage(null);
     setAiWarnings([]);
@@ -425,6 +445,12 @@ export default function CheckPage() {
     }
 
     setFileName(file.name);
+    setReportPreview((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+    setExtractionNeedsReview(false);
+    setExtractionConfirmed(false);
     setAiBusy("report");
     setAiMessage(null);
     setAiWarnings([]);
@@ -466,8 +492,22 @@ export default function CheckPage() {
         setFullChargeCapacityMwh(String(extraction.fullChargeCapacityMwh));
       }
 
+      const warnings = [...extraction.warnings];
+      if (extraction.model) {
+        const matchedModel = findModel(extraction.model);
+        if (matchedModel) {
+          setModelId(matchedModel.id);
+        } else {
+          warnings.push(
+            `Model “${extraction.model}” was not recognized; select it manually.`
+          );
+        }
+      }
+
+      setExtractionNeedsReview(true);
+      setExtractionConfirmed(false);
       setAiConfidence(extraction.confidence);
-      setAiWarnings(extraction.warnings);
+      setAiWarnings(warnings);
       setAiMessage(
         "Report extracted. Check every value before continuing."
       );
@@ -490,6 +530,12 @@ export default function CheckPage() {
     }
 
     setLabelFileName(file.name);
+    setLabelPreview((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+    setExtractionNeedsReview(false);
+    setExtractionConfirmed(false);
     setAiBusy("label");
     setAiMessage(null);
     setAiWarnings([]);
@@ -528,10 +574,12 @@ export default function CheckPage() {
       if (matchedModel) {
         setModelId(matchedModel.id);
       }
-      if (extraction.capacityWh && !designCapacityMwh) {
+      if (extraction.capacityWh) {
         setDesignCapacityMwh(String(Math.round(extraction.capacityWh * 1000)));
       }
 
+      setExtractionNeedsReview(true);
+      setExtractionConfirmed(false);
       setAiConfidence(extraction.confidence);
       setAiWarnings(extraction.warnings);
       setAiMessage(
@@ -651,6 +699,17 @@ export default function CheckPage() {
     setSymptomTags(["battery_runtime_short"]);
     setFileName(null);
     setLabelFileName(null);
+    setReportPreview((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setLabelPreview((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setAiConsent(false);
+    setExtractionNeedsReview(false);
+    setExtractionConfirmed(false);
     setAiBusy(null);
     setAiMessage(null);
     setAiWarnings([]);
@@ -917,6 +976,20 @@ export default function CheckPage() {
                 <h2 id="battery-heading">Battery report or label</h2>
               </div>
 
+              <label className="consent-row">
+                <input
+                  type="checkbox"
+                  checked={aiConsent}
+                  onChange={(event) => setAiConsent(event.target.checked)}
+                />
+                <span>
+                  Images are sent to Gemini for extraction. The free tier may
+                  use content to improve Google products. Crop to the battery
+                  section and redact serial numbers, service tags, and personal
+                  data before uploading.
+                </span>
+              </label>
+
               <div className="upload-box">
                 <div>
                   <strong>Have a battery report screenshot?</strong>
@@ -933,11 +1006,18 @@ export default function CheckPage() {
                     onChange={(event) =>
                       void handleReportFile(event.target.files?.[0])
                     }
-                    disabled={aiBusy !== null}
+                    disabled={aiBusy !== null || !aiConsent}
                   />
                 </label>
                 {fileName ? (
                   <p className="status-note">Selected: {fileName}</p>
+                ) : null}
+                {reportPreview ? (
+                  <img
+                    className="upload-preview"
+                    src={reportPreview}
+                    alt="Selected battery report preview"
+                  />
                 ) : null}
               </div>
 
@@ -957,11 +1037,18 @@ export default function CheckPage() {
                     onChange={(event) =>
                       void handleLabelFile(event.target.files?.[0])
                     }
-                    disabled={aiBusy !== null}
+                    disabled={aiBusy !== null || !aiConsent}
                   />
                 </label>
                 {labelFileName ? (
                   <p className="status-note">Selected: {labelFileName}</p>
+                ) : null}
+                {labelPreview ? (
+                  <img
+                    className="upload-preview"
+                    src={labelPreview}
+                    alt="Selected label preview"
+                  />
                 ) : null}
               </div>
 
@@ -989,6 +1076,21 @@ export default function CheckPage() {
                     ))}
                   </ul>
                 </div>
+              ) : null}
+              {extractionNeedsReview ? (
+                <label className="consent-row">
+                  <input
+                    type="checkbox"
+                    checked={extractionConfirmed}
+                    onChange={(event) =>
+                      setExtractionConfirmed(event.target.checked)
+                    }
+                  />
+                  <span>
+                    I reviewed the extracted model, capacities, and part number
+                    and corrected anything wrong.
+                  </span>
+                </label>
               ) : null}
 
               <div className="field-grid">
@@ -1059,7 +1161,8 @@ export default function CheckPage() {
                   disabled={
                     !installedPartNumber.trim() ||
                     !Number(designCapacityMwh) ||
-                    !Number(fullChargeCapacityMwh)
+                    !Number(fullChargeCapacityMwh) ||
+                    (extractionNeedsReview && !extractionConfirmed)
                   }
                 >
                   Continue to symptoms

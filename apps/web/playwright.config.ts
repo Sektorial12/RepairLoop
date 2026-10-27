@@ -1,5 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const localChromium = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+const chromiumLaunch = localChromium
+  ? {
+      launchOptions: {
+        executablePath: localChromium,
+        args: ["--no-sandbox", "--disable-dev-shm-usage"]
+      }
+    }
+  : {};
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -12,8 +22,8 @@ export default defineConfig({
     screenshot: "only-on-failure"
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile-chrome", use: { ...devices["Pixel 7"] } },
+    { name: "chromium", use: { ...devices["Desktop Chrome"], ...chromiumLaunch } },
+    { name: "mobile-chrome", use: { ...devices["Pixel 7"], ...chromiumLaunch } },
     ...(process.env.CI || process.env.PLAYWRIGHT_WEBKIT === "1"
       ? [{ name: "mobile-webkit", use: { ...devices["iPhone 13"] } }]
       : [])

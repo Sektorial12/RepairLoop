@@ -3,8 +3,26 @@ import { catalogData } from "./data.js";
 const errors: string[] = [];
 
 const sourceIds = new Set(catalogData.sources.map((source) => source.id));
+const sourceById = new Map(
+  catalogData.sources.map((source) => [source.id, source])
+);
 const modelIds = new Set(catalogData.models.map((model) => model.id));
 const partIds = new Set(catalogData.parts.map((part) => part.id));
+
+for (const source of catalogData.sources) {
+  if (!source.publisher.trim()) {
+    errors.push(`Source ${source.id} has no publisher`);
+  }
+  if (!/^https:\/\//.test(source.url)) {
+    errors.push(`Source ${source.id} does not use an HTTPS URL`);
+  }
+  if (
+    !(source.accessedAt instanceof Date) ||
+    Number.isNaN(source.accessedAt.getTime())
+  ) {
+    errors.push(`Source ${source.id} has an invalid accessedAt`);
+  }
+}
 
 for (const part of catalogData.parts) {
   if (!sourceIds.has(part.sourceId)) {
@@ -12,6 +30,9 @@ for (const part of catalogData.parts) {
   }
   if (part.status === "verified" && !part.verifiedAt) {
     errors.push(`Verified part ${part.id} is missing verifiedAt`);
+  }
+  if (part.verifiedAt && part.verifiedAt.getTime() > Date.now()) {
+    errors.push(`Verified part ${part.id} has a future verifiedAt`);
   }
 }
 
@@ -27,6 +48,18 @@ for (const row of catalogData.compatibility) {
   }
   if (row.status === "verified" && !row.verifiedAt) {
     errors.push(`Verified compatibility ${row.id} is missing verifiedAt`);
+  }
+  if (row.verifiedAt && row.verifiedAt.getTime() > Date.now()) {
+    errors.push(`Verified compatibility ${row.id} has a future verifiedAt`);
+  }
+  if (row.status === "verified") {
+    const source = sourceById.get(row.sourceId);
+    if (!source) {
+      errors.push(`Verified compatibility ${row.id} has no source`);
+    }
+    if (!row.evidenceQuote?.trim()) {
+      errors.push(`Verified compatibility ${row.id} has no evidence quote`);
+    }
   }
 }
 

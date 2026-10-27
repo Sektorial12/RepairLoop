@@ -65,10 +65,20 @@ export function paypalConfigured(): boolean {
   return Boolean(env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET);
 }
 
+function assertSandboxOnly(): void {
+  if (env.DEMO_MODE && !env.PAYPAL_API_BASE.includes("sandbox")) {
+    throw new PayPalError(
+      "not_configured",
+      "Live PayPal is disabled in demo mode"
+    );
+  }
+}
+
 export function getPayPalPublicConfig(): PayPalPublicConfig {
   if (!paypalConfigured() || !env.PAYPAL_CLIENT_ID) {
     throw new PayPalError("not_configured", "PayPal is not configured");
   }
+  assertSandboxOnly();
 
   return {
     clientId: env.PAYPAL_CLIENT_ID,
@@ -101,6 +111,7 @@ async function getAccessToken(): Promise<string> {
   if (!paypalConfigured()) {
     throw new PayPalError("not_configured", "PayPal is not configured");
   }
+  assertSandboxOnly();
 
   if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
     return tokenCache.token;
@@ -258,10 +269,11 @@ export function captureMatchesOrder(
   order: { amount: string | null; currency: string },
   capture: PayPalCapture
 ): boolean {
+  if (order.amount === null) return false;
+
   return (
-    order.amount === null ||
-    (order.currency === capture.amount.currency_code &&
-      order.amount === capture.amount.value)
+    order.currency === capture.amount.currency_code &&
+    order.amount === capture.amount.value
   );
 }
 

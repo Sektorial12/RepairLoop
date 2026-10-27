@@ -112,6 +112,22 @@ test.describe("PayPal failure states", () => {
   });
 });
 
+test("check starts empty and requires an installed part number", async ({
+  page
+}) => {
+  await mockModels(page);
+  await page.goto("/check");
+
+  await page.getByRole("button", { name: "Continue to battery" }).click();
+
+  await expect(page.getByLabel("Installed part number")).toHaveValue("");
+  await expect(page.getByLabel("Design capacity (mWh)")).toHaveValue("");
+  await expect(page.getByLabel("Full charge capacity (mWh)")).toHaveValue("");
+  await expect(
+    page.getByRole("button", { name: "Continue to symptoms" })
+  ).toBeDisabled();
+});
+
 test.describe("check flow scenarios", () => {
   test.beforeEach(async ({ page }) => {
     await mockModels(page);

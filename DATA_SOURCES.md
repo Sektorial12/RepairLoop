@@ -2,7 +2,7 @@
 
 RepairLoop uses a deliberately small, source-linked catalog. It does **not** claim that AI can determine fitment. Compatibility, capacity, voltage, and part numbers are transcribed from public manufacturer and reputable parts sources, then human-verified.
 
-**Rule:** every verified mapping needs at least two sources and a `verified_at` date. If a source is ambiguous or missing, the part is marked `unverified` and cannot be purchased.
+**Rule:** every verified mapping needs a primary product source, an evidence quote, and a `verified_at` date. Additional independent sources are recorded where available; the 68Wh `4GVMP` mapping is corroborated by Dell specifications, Parts-People, iFixit, and LaptopBatteryExpress. If the primary source is ambiguous or missing, the part is marked `unverified` and cannot be purchased. The app does not claim live stock, shipping, or availability.
 
 ## Device and battery facts
 

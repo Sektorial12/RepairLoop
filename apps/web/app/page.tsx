@@ -70,6 +70,13 @@ export default function HomePage() {
               <a className="inline-link" href="/check?demo=1">
                 Open the demo case →
               </a>
+              {" · "}
+              <a
+                className="inline-link"
+                href="/receipt/7LS832802T701580V"
+              >
+                See a completed sandbox capture →
+              </a>
             </p>
           </div>
 

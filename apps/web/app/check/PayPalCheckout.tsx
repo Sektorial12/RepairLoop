@@ -123,6 +123,7 @@ export function PayPalCheckout({
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const repairCaseIdRef = useRef<string | null>(null);
+  const forceNewOrderRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -192,7 +193,8 @@ export function PayPalCheckout({
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
-              repairCaseId: repairCaseIdRef.current
+              repairCaseId: repairCaseIdRef.current,
+              forceNew: forceNewOrderRef.current
             })
           }
         );
@@ -211,6 +213,7 @@ export function PayPalCheckout({
         const orderData = (await orderResponse.json()) as {
           orderId: string;
         };
+        forceNewOrderRef.current = false;
         return orderData.orderId;
       };
 
@@ -226,6 +229,7 @@ export function PayPalCheckout({
         onApprove: async (data) => {
           const orderId = data.orderID ?? data.orderId;
           if (!orderId) {
+            forceNewOrderRef.current = true;
             setStatus("ready");
             setError("PayPal returned no order ID.");
             return;
@@ -256,6 +260,7 @@ export function PayPalCheckout({
             const receipt = (await response.json()) as Receipt;
             onCaptured(receipt);
           } catch (caught) {
+            forceNewOrderRef.current = true;
             setStatus("ready");
             setError(
               caught instanceof Error &&
@@ -269,10 +274,12 @@ export function PayPalCheckout({
           }
         },
         onCancel: () => {
+          forceNewOrderRef.current = true;
           setStatus("ready");
           setError("Payment cancelled. No charge.");
         },
         onError: () => {
+          forceNewOrderRef.current = true;
           setStatus("ready");
           setError("PayPal could not complete the payment. No charge.");
         }

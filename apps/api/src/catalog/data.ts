@@ -190,7 +190,7 @@ const parts: CatalogData["parts"] = [
     cells: 3,
     partNumber: "R8D7N",
     altPartNumbers: ["W8GMW", "49HG8", "TNT6H", "CP5GR"],
-    seller: "iFixit",
+    seller: "Parts-People",
     priceDemo: "99.99",
     currency: "USD",
     status: "verified",

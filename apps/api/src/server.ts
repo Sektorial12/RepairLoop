@@ -16,6 +16,7 @@ import { repairCaseRoutes } from "./routes/repair-cases.js";
 import { webhookRoutes } from "./routes/webhooks.js";
 
 const app = Fastify({
+  trustProxy: true,
   logger: {
     level: env.LOG_LEVEL
   },
@@ -48,7 +49,9 @@ app.addContentTypeParser(
     try {
       done(null, JSON.parse(rawBody.toString()));
     } catch (error) {
-      done(error as Error, undefined);
+      const parseError = error as Error & { statusCode?: number };
+      parseError.statusCode = 400;
+      done(parseError, undefined);
     }
   }
 );
@@ -70,8 +73,21 @@ await app.register(paypalRoutes, { prefix: "/api" });
 await app.register(webhookRoutes, { prefix: "/api" });
 
 app.setErrorHandler((error, request, reply) => {
+  const statusCode =
+    (error as { statusCode?: number }).statusCode ??
+    (error instanceof SyntaxError ? 400 : 500);
+
+  if (statusCode === 429) {
+    return reply.code(429).send({ error: "rate_limited" });
+  }
+
+  if (statusCode >= 400 && statusCode < 500) {
+    request.log.warn({ err: error }, "request error");
+    return reply.code(statusCode).send({ error: "invalid_request" });
+  }
+
   request.log.error(error);
-  reply.code(500).send({ error: "internal_error" });
+  return reply.code(500).send({ error: "internal_error" });
 });
 
 const shutdown = async (signal: string): Promise<void> => {

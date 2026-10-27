@@ -4,8 +4,10 @@ import type {
   FastifyRequest
 } from "fastify";
 import { desc, eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { loadCatalog } from "../catalog/load.js";
+import { corsOrigins } from "../config.js";
 import { matchCatalog } from "../catalog/matcher.js";
 import { db } from "../db/client.js";
 import {
@@ -27,7 +29,8 @@ type Database = NonNullable<typeof db>;
 type OrderRow = typeof orders.$inferSelect;
 
 const CreateOrderBodySchema = z.object({
-  repairCaseId: z.string().uuid()
+  repairCaseId: z.string().uuid(),
+  forceNew: z.boolean().optional().default(false)
 });
 
 const CaptureParamsSchema = z.object({
@@ -194,6 +197,7 @@ export async function checkoutRoutes(
           });
         }
         if (
+          !parsed.data.forceNew &&
           (existing.status === "created" ||
             existing.status === "approved") &&
           existing.paypalOrderId
@@ -210,16 +214,24 @@ export async function checkoutRoutes(
 
       const amount = selected.part.priceDemo;
       const currency = selected.part.currency;
-      const origin = request.headers.origin;
-      const returnUrl = origin ? `${origin}/check?paypal=return` : undefined;
-      const cancelUrl = origin ? `${origin}/check?paypal=cancel` : undefined;
+      const requestOrigin = request.headers.origin;
+      const safeOrigin =
+        requestOrigin && corsOrigins.includes(requestOrigin)
+          ? requestOrigin
+          : undefined;
+      const returnUrl = safeOrigin
+        ? `${safeOrigin}/check?paypal=return`
+        : undefined;
+      const cancelUrl = safeOrigin
+        ? `${safeOrigin}/check?paypal=cancel`
+        : undefined;
       const paypalOrder = await createPayPalOrder({
         amount,
         currency,
         description: `${selected.part.name} — ${selected.part.partNumber}`,
         customId: `${repairCase.id}|${selected.part.id}`,
         referenceId: selected.part.id,
-        requestId: `repairloop-${repairCase.id}`,
+        requestId: `repairloop-${repairCase.id}-${randomUUID()}`,
         returnUrl,
         cancelUrl
       });
