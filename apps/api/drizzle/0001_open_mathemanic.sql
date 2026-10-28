@@ -1,0 +1,1 @@
+ALTER TABLE "parts" ALTER COLUMN "voltage" SET DATA TYPE numeric(5, 2);

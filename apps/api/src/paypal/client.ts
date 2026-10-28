@@ -66,7 +66,14 @@ export function paypalConfigured(): boolean {
 }
 
 function assertSandboxOnly(): void {
-  if (env.DEMO_MODE && !env.PAYPAL_API_BASE.includes("sandbox")) {
+  const isSandbox = env.PAYPAL_API_BASE.includes("sandbox");
+  if (!isSandbox && !env.PAYPAL_LIVE_ENABLED) {
+    throw new PayPalError(
+      "not_configured",
+      "Live PayPal is disabled; set PAYPAL_LIVE_ENABLED=true explicitly"
+    );
+  }
+  if (env.DEMO_MODE && !isSandbox) {
     throw new PayPalError(
       "not_configured",
       "Live PayPal is disabled in demo mode"

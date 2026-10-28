@@ -1,10 +1,9 @@
 import type { FastifyInstance } from "fastify";
-import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { loadCatalog } from "../catalog/load.js";
 import { matchCatalog } from "../catalog/matcher.js";
 import { db } from "../db/client.js";
-import { parts, repairCases, sources } from "../db/schema.js";
+import { repairCases } from "../db/schema.js";
 
 const BodySchema = z
   .object({
@@ -24,60 +23,7 @@ export async function repairCaseRoutes(
   app: FastifyInstance
 ): Promise<void> {
 
-  app.get("/repair-cases", async (_request, reply) => {
-    if (!db) {
-      return reply.code(503).send({ error: "database_not_configured" });
-    }
-
-    const rows = await db
-      .select({
-        id: repairCases.id,
-        modelId: repairCases.modelId,
-        installedPartNumber: repairCases.installedPartNumber,
-        designCapacityMwh: repairCases.designCapacityMwh,
-        fullChargeCapacityMwh: repairCases.fullChargeCapacityMwh,
-        healthPct: repairCases.healthPct,
-        symptomTags: repairCases.symptomTags,
-        createdAt: repairCases.createdAt,
-        partNumber: parts.partNumber,
-        partName: parts.name,
-        seller: parts.seller,
-        priceDemo: parts.priceDemo,
-        currency: parts.currency,
-        sourcePublisher: sources.publisher,
-        sourceUrl: sources.url
-      })
-      .from(repairCases)
-      .leftJoin(parts, eq(repairCases.selectedPartId, parts.id))
-      .leftJoin(sources, eq(parts.sourceId, sources.id))
-      .orderBy(desc(repairCases.createdAt))
-      .limit(25);
-
-    return {
-      cases: rows.map((row) => ({
-        id: row.id,
-        modelId: row.modelId,
-        installedPartNumber: row.installedPartNumber,
-        designCapacityMwh: row.designCapacityMwh,
-        fullChargeCapacityMwh: row.fullChargeCapacityMwh,
-        healthPct: row.healthPct,
-        symptomTags: row.symptomTags,
-        createdAt: row.createdAt,
-        selectedPart: row.partNumber
-          ? {
-              partNumber: row.partNumber,
-              name: row.partName,
-              seller: row.seller,
-              priceDemo: row.priceDemo,
-              currency: row.currency,
-              sourcePublisher: row.sourcePublisher,
-              sourceUrl: row.sourceUrl
-            }
-          : null
-      }))
-    };
-  });
-app.post("/repair-cases", async (request, reply) => {
+  app.post("/repair-cases", async (request, reply) => {
     if (!db) {
       return reply.code(503).send({ error: "database_not_configured" });
     }

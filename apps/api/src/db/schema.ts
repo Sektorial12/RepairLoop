@@ -39,7 +39,7 @@ export const parts = pgTable(
     name: text("name").notNull(),
     category: text("category").notNull().default("battery"),
     capacityWh: integer("capacity_wh").notNull(),
-    voltage: numeric("voltage", { precision: 4, scale: 1 }).notNull(),
+    voltage: numeric("voltage", { precision: 5, scale: 2 }).notNull(),
     cells: integer("cells").notNull(),
     partNumber: text("part_number").notNull(),
     altPartNumbers: jsonb("alt_part_numbers")

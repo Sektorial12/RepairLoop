@@ -26,22 +26,17 @@ function findModel(models: ModelRow[], input: MatchInput): ModelRow | undefined 
   if (!input.modelQuery) return undefined;
 
   const query = normalize(input.modelQuery);
-  return models.find((model) => {
+  const matches = models.filter((model) => {
     const candidates = [
       model.model,
       ...model.aliases,
       ...(model.regulatoryModel ? model.regulatoryModel.split("/") : [])
     ];
 
-    return candidates.some((candidate) => {
-      const normalized = normalize(candidate);
-      return (
-        normalized === query ||
-        normalized.includes(query) ||
-        query.includes(normalized)
-      );
-    });
+    return candidates.some((candidate) => normalize(candidate) === query);
   });
+
+  return matches.length === 1 ? matches[0] : undefined;
 }
 
 function findPartByNumber(parts: PartRow[], query: string): PartRow | undefined {

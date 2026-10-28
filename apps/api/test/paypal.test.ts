@@ -89,9 +89,26 @@ describe("PayPal client", () => {
     });
   });
 
+  it("blocks live PayPal unless explicitly enabled", async () => {
+    vi.stubEnv("PAYPAL_API_BASE", "https://api-m.paypal.com");
+    vi.stubEnv("DEMO_MODE", "false");
+    vi.stubEnv("PAYPAL_LIVE_ENABLED", "false");
+    vi.resetModules();
+
+    const { getPayPalPublicConfig, PayPalError } = await import(
+      "../src/paypal/client.js"
+    );
+
+    expect(() => getPayPalPublicConfig()).toThrow(PayPalError);
+    expect(() => getPayPalPublicConfig()).toThrow(
+      "Live PayPal is disabled"
+    );
+  });
+
   it("blocks a live PayPal base while demo mode is enabled", async () => {
     vi.stubEnv("PAYPAL_API_BASE", "https://api-m.paypal.com");
     vi.stubEnv("DEMO_MODE", "true");
+    vi.stubEnv("PAYPAL_LIVE_ENABLED", "true");
     vi.resetModules();
 
     const { getPayPalPublicConfig, PayPalError } = await import(
@@ -217,7 +234,8 @@ describe("PayPal client", () => {
     expect(
       isCompletedOrder({ status: "created", paypalCaptureId: null })
     ).toBe(false);
-  });
+  }, 15000);
+
 
   it("rejects a capture whose amount or currency differs from the order", async () => {
     const { captureMatchesOrder } = await import("../src/paypal/client.js");

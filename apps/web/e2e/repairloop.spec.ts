@@ -77,6 +77,23 @@ test("PayPal return recovers the order into the receipt lookup", async ({
   await expect(page.getByLabel("Payment recovery")).toHaveValue("TEST-ORDER");
 });
 
+test("Start over clears the demo identity", async ({ page }) => {
+  await mockModels(page);
+  await mockMatches(page);
+  await page.goto("/check?demo=1");
+
+  await expect(
+    page.getByRole("heading", { name: "Verified replacement" })
+  ).toBeVisible({ timeout: 20_000 });
+
+  await page.getByRole("button", { name: "Start over" }).first().click();
+
+  await expect(page.getByRole("combobox")).toHaveValue("");
+  await expect(
+    page.getByRole("button", { name: "Continue to battery" })
+  ).toBeDisabled();
+});
+
 test("shop intake drafts a verified quote and adds it after approval", async ({
   page
 }) => {

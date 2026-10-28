@@ -18,6 +18,11 @@ const boolFromString = z
   .default("true")
   .transform((value) => value === "true");
 
+const boolFromStringFalse = z
+  .enum(["true", "false"])
+  .default("false")
+  .transform((value) => value === "true");
+
 const EnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(3002),
@@ -36,6 +41,7 @@ const EnvSchema = z.object({
     .url()
     .default("https://api-m.sandbox.paypal.com"),
   PAYPAL_WEBHOOK_ID: z.string().min(1).optional(),
+  PAYPAL_LIVE_ENABLED: boolFromStringFalse,
   DEMO_MODE: boolFromString,
   LOG_LEVEL: z.string().default("info")
 });

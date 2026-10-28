@@ -483,6 +483,19 @@ export async function checkoutRoutes(
       .where(eq(paymentEvents.orderId, order.id))
       .orderBy(desc(paymentEvents.createdAt));
 
+    const hasStoredCapture = events.some(
+      (event) =>
+        event.eventType === "PAYMENT.CAPTURE.COMPLETED" &&
+        event.id.startsWith("capture-")
+    );
+    const visibleEvents = hasStoredCapture
+      ? events.filter(
+          (event) =>
+            event.eventType !== "PAYMENT.CAPTURE.COMPLETED" ||
+            event.id.startsWith("capture-")
+        )
+      : events;
+
     return {
       order: {
         id: order.id,
@@ -494,7 +507,7 @@ export async function checkoutRoutes(
         createdAt: order.createdAt
       },
       part,
-      events
+      events: visibleEvents
     };
   });
 }

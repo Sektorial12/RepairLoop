@@ -37,6 +37,18 @@ describe("catalog matcher", () => {
     expect(result.exact?.part.partNumber).toBe("4GVMP");
   });
 
+  it("refuses an ambiguous model query instead of selecting the first model", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "Dell",
+      installedPartNumber: "X77XY",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("unsupported_model");
+  });
+
   it("refuses to infer an exact part from capacity alone", () => {
     const result = matchCatalog(catalogData, {
       modelQuery: "Latitude 5400",

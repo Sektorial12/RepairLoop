@@ -122,6 +122,7 @@ export function PayPalCheckout({
     "loading" | "ready" | "error"
   >("loading");
   const [error, setError] = useState<string | null>(null);
+  const [displayAmount, setDisplayAmount] = useState(amountLabel);
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const repairCaseIdRef = useRef<string | null>(null);
@@ -216,7 +217,18 @@ export function PayPalCheckout({
 
         const orderData = (await orderResponse.json()) as {
           orderId: string;
+          amount?: string;
+          currency?: string;
         };
+        if (orderData.amount && orderData.currency) {
+          setDisplayAmount(
+            new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: orderData.currency,
+              maximumFractionDigits: 2
+            }).format(Number(orderData.amount))
+          );
+        }
         setLastOrderId(orderData.orderId);
         forceNewOrderRef.current = false;
         return orderData.orderId;
@@ -320,7 +332,7 @@ export function PayPalCheckout({
       <p className="paypal-amount">
         {status === "loading"
           ? "Loading PayPal…"
-          : `Pay ${amountLabel} with PayPal`}
+          : `Pay ${displayAmount} with PayPal`}
       </p>
       <div ref={containerRef} className="paypal-button-container" />
       <p className="hint">

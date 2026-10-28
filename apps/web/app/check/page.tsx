@@ -230,6 +230,7 @@ export default function CheckPage() {
   const [error, setError] = useState<string | null>(null);
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const [lookupOrderId, setLookupOrderId] = useState("");
+  const initialModelSelected = useRef(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
   const [explanation, setExplanation] = useState<Explanation | null>(null);
@@ -258,14 +259,12 @@ export default function CheckPage() {
         const data = (await response.json()) as { models: Model[] };
         if (!cancelled) {
           setModels(data.models);
-          if (
-            data.models.length > 0 &&
-            !data.models.some((model) => model.id === modelId)
-          ) {
+          if (!initialModelSelected.current && data.models.length > 0) {
             const preferred = data.models.find(
               (model) => model.id === "dell-latitude-5400"
             );
             setModelId(preferred?.id ?? data.models[0].id);
+            initialModelSelected.current = true;
           }
         }
       } catch (caught) {
@@ -283,7 +282,7 @@ export default function CheckPage() {
     return () => {
       cancelled = true;
     };
-  }, [modelId]);
+  }, []);
 
   const selectedModel = models.find((model) => model.id === modelId);
   const normalizedModelSearch = modelSearch.trim().toLowerCase();
@@ -305,16 +304,12 @@ export default function CheckPage() {
   const findModel = (query: string | null | undefined): Model | undefined => {
     if (!query) return undefined;
     const normalizedQuery = normalizeValue(query);
-    return models.find((model) =>
-      [model.model, ...model.aliases].some((candidate) => {
-        const normalized = normalizeValue(candidate);
-        return (
-          normalized === normalizedQuery ||
-          normalized.includes(normalizedQuery) ||
-          normalizedQuery.includes(normalized)
-        );
-      })
+    const matches = models.filter((model) =>
+      [model.model, ...model.aliases].some(
+        (candidate) => normalizeValue(candidate) === normalizedQuery
+      )
     );
+    return matches.length === 1 ? matches[0] : undefined;
   };
 
   const fileToBase64 = (file: File): Promise<{
@@ -714,11 +709,11 @@ export default function CheckPage() {
     setResult(null);
     setSelectedOption(null);
     setError(null);
-    setModelId("dell-latitude-5400");
-    setInstalledPartNumber("X77XY");
-    setDesignCapacityMwh("68005");
-    setFullChargeCapacityMwh("46907");
-    setSymptomTags(["battery_runtime_short"]);
+    setModelId("");
+    setInstalledPartNumber("");
+    setDesignCapacityMwh("");
+    setFullChargeCapacityMwh("");
+    setSymptomTags([]);
     setFileName(null);
     setLabelFileName(null);
     setReportPreview((current) => {
@@ -1018,11 +1013,14 @@ export default function CheckPage() {
                     {modelsLoading ? (
                       <option>Loading models…</option>
                     ) : (
-                      visibleModels.map((model) => (
-                        <option key={model.id} value={model.id}>
-                          {model.brand} {model.model}
-                        </option>
-                      ))
+                      <>
+                        <option value="">Select a model…</option>
+                        {visibleModels.map((model) => (
+                          <option key={model.id} value={model.id}>
+                            {model.brand} {model.model}
+                          </option>
+                        ))}
+                      </>
                     )}
                   </select>
                 </label>
@@ -1053,7 +1051,7 @@ export default function CheckPage() {
                   className="button primary"
                   type="button"
                   onClick={() => setStep(1)}
-                  disabled={modelsLoading}
+                  disabled={modelsLoading || !modelId}
                 >
                   Continue to battery
                 </button>
@@ -1673,6 +1671,11 @@ export default function CheckPage() {
                     Compatibility is verified by the source-linked catalog.
                     PayPal completes the payment; it does not verify the part.
                   </p>
+                  <div className="notice notice-warning">
+                    <strong>Sandbox simulation.</strong> No part ships. Shipping
+                    and tax are shown as $0.00 because there is no real sale;
+                    seller fulfillment, returns, and warranty are not provided.
+                  </div>
 
                   {receipt ? (
                     <div className="receipt-success">

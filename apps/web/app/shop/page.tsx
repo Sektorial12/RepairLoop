@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { apiBaseUrl } from "../lib/api";
 
 type Extraction = {
@@ -97,30 +97,8 @@ export default function ShopPage() {
   const [draft, setDraft] = useState<ShopIntakeDraft | null>(null);
   const [drafting, setDrafting] = useState(false);
   const [queue, setQueue] = useState<RepairCase[]>([]);
-  const [queueLoading, setQueueLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
-
-  const loadQueue = useCallback(async () => {
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/repair-cases`, {
-        cache: "no-store"
-      });
-      if (!response.ok) throw new Error(`Queue returned ${response.status}`);
-      const data = (await response.json()) as { cases: RepairCase[] };
-      setQueue(data.cases);
-    } catch (caught) {
-      setError(
-        caught instanceof Error ? caught.message : "Could not load the queue."
-      );
-    } finally {
-      setQueueLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadQueue();
-  }, [loadQueue]);
 
   const runIntake = async () => {
     if (!text.trim()) return;
@@ -184,8 +162,31 @@ export default function ShopPage() {
           body?.message ?? body?.error ?? `Queue add returned ${response.status}.`
         );
       }
+      const quote = draft.quote;
+      setQueue((current) => [
+        {
+          id: body?.repairCaseId ?? `local-${Date.now()}`,
+          modelId: draft.match.model?.id ?? null,
+          installedPartNumber: draft.extraction.installedPartNumber,
+          healthPct:
+            draft.match.healthPct !== null
+              ? draft.match.healthPct.toFixed(1)
+              : null,
+          symptomTags: draft.extraction.symptomTags,
+          createdAt: new Date().toISOString(),
+          selectedPart: {
+            partNumber: quote.partNumber,
+            name: quote.name,
+            seller: quote.seller,
+            priceDemo: quote.amount,
+            currency: quote.currency,
+            sourcePublisher: quote.sourcePublisher,
+            sourceUrl: quote.sourceUrl
+          }
+        },
+        ...current
+      ]);
       setAdded(true);
-      await loadQueue();
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Could not add the quote."
@@ -402,24 +403,13 @@ export default function ShopPage() {
                 <h2 id="queue-heading">Approved quotes</h2>
               </div>
               <p className="hint">
-                Quotes are human-approved before they reach the queue. Payment
-                and seller handoff are external; no inventory or fulfillment is
-                claimed.
+                Quotes are human-approved before they reach the queue. This
+                queue is local to the browser for the demo; there is no public
+                shop-queue endpoint. Payment and seller handoff are external;
+                no inventory or fulfillment is claimed.
               </p>
-              <div className="button-row">
-                <button
-                  className="button ghost"
-                  type="button"
-                  onClick={() => void loadQueue()}
-                  disabled={queueLoading}
-                >
-                  Refresh queue
-                </button>
-              </div>
 
-              {queueLoading ? (
-                <p>Loading queue…</p>
-              ) : queue.length === 0 ? (
+              {queue.length === 0 ? (
                 <p className="hint">No approved quotes yet.</p>
               ) : (
                 <div className="shop-case-list">
