@@ -8,7 +8,7 @@ RepairLoop turns a laptop battery report or label photo into a source-linked rep
 
 **Status:** Working prototype. The verified/no-match/safety battery check flow, live Gemini extraction, and PayPal Sandbox checkout/capture are implemented. No fake paid state is shown.
 
-**Coverage:** 16 source-linked Dell Latitude/Precision/Inspiron models across the shared 42Wh, 51Wh, and 68Wh battery families. Unsupported models are refused and can be requested through the public issue tracker.
+**Coverage:** 17 source-linked Dell Latitude/Precision/Inspiron models and the Lenovo ThinkPad T480s across the shared Dell 42/51/68Wh families and the T480s 57Wh family. Unsupported models are refused and can be requested through the public issue tracker.
 
 **Shop mode:** `/shop` provides an AI-assisted intake pipeline (customer text → extracted facts → deterministic catalog match → human-approved quote) with a seller handoff. AI never chooses fitment or captures payment.
 

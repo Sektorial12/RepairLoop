@@ -16,7 +16,8 @@ const models = [
   "Precision 3551",
   "Inspiron 7590 2-in-1",
   "Inspiron 7591 2-in-1",
-  "Inspiron 7791 2-in-1"
+  "Inspiron 7791 2-in-1",
+  "ThinkPad T480s"
 ];
 
 const steps = [
@@ -208,11 +209,12 @@ export default function HomePage() {
         <section className="section" id="models">
           <div className="section-head">
             <p className="eyebrow">Supported today</p>
-            <h2>Three Dell battery families. Verified across 16 models.</h2>
+            <h2>Dell and Lenovo battery families. Verified across 17 models.</h2>
             <p>
               The shared 42Wh, 51Wh, and 68Wh Dell battery families span
-              Latitude, Precision, and Inspiron models. Each compatibility row
-              is source-linked; other models are requested, not guessed.
+              Latitude, Precision, and Inspiron models, plus the Lenovo
+              ThinkPad T480s 57Wh family. Each compatibility row is
+              source-linked; other models are requested, not guessed.
             </p>
           </div>
           <div className="model-row">

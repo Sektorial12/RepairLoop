@@ -75,6 +75,18 @@ describe("catalog matcher", () => {
     expect(result.exact?.part.partNumber).toBe("4GVMP");
   });
 
+  it("supports the Lenovo ThinkPad T480s 57Wh battery", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "ThinkPad T480s",
+      installedPartNumber: "01AV478",
+      designCapacityMwh: 57000,
+      fullChargeCapacityMwh: 40000
+    });
+
+    expect(result.status).toBe("verified_match");
+    expect(result.exact?.part.partNumber).toBe("01AV478");
+  });
+
   it("does not offer the 68Wh 4GVMP for a 51Wh Latitude 5410", () => {
     const result = matchCatalog(catalogData, {
       modelId: "dell-latitude-5410",

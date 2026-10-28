@@ -107,6 +107,22 @@ const sources: CatalogData["sources"] = [
     accessedAt: ACCESSED_AT,
     licenseTerms: "Public user forum; anecdote only.",
     notes: "User report of 68Wh 4GVMP charging behavior after replacing a 42Wh battery; not official guidance."
+  },
+  {
+    id: "src-lenovo-t480s-frubom",
+    publisher: "Lenovo",
+    url: "https://download.lenovo.com/parts/ThinkPad/t480s_frubom_mt_20l7_20l8_20180226.pdf",
+    accessedAt: ACCESSED_AT,
+    licenseTerms: "Public Lenovo parts BOM; facts used; link only.",
+    notes: "ThinkPad T480s (20L7/20L8) FRU BOM: 01AV478/01AV479/01AV480 are internal 3-cell 57Wh Li-ion batteries."
+  },
+  {
+    id: "src-ifixit-t480s-battery",
+    publisher: "iFixit",
+    url: "https://www.ifixit.com/products/lenovo-thinkpad-t480s-battery",
+    accessedAt: ACCESSED_AT,
+    licenseTerms: "Public product listing; facts used; no images copied.",
+    notes: "Lenovo ThinkPad T480s battery 01AV478: 57Wh, 11.58V, 3-cell, 4708mAh; compatible with ThinkPad T480s."
   }
 ];
 
@@ -238,6 +254,14 @@ const models: CatalogData["models"] = [
     model: "Latitude 5400 Chromebook",
     aliases: ["Latitude 5400 Chromebook", "Latitude 5400 Chromebook Enterprise", "Dell Latitude 5400 Chromebook", "5400 Chromebook"],
     regulatoryModel: null
+  },
+  {
+    id: "lenovo-thinkpad-t480s",
+    brand: "Lenovo",
+    family: "ThinkPad",
+    model: "ThinkPad T480s",
+    aliases: ["ThinkPad T480s", "Lenovo ThinkPad T480s", "T480s", "20L7", "20L8"],
+    regulatoryModel: null
   }
 ];
 
@@ -320,6 +344,23 @@ const parts: CatalogData["parts"] = [
     verifiedAt: null,
     notes:
       "68Wh but 15.2V. It does not match the Dell 7.6V 68Wh specification for this configuration. Keep it out of checkout and use it as the explicit wrong-variant example."
+  },
+  {
+    id: "part-01av478-57wh",
+    name: "Lenovo ThinkPad T480s 57Wh 3-cell battery (11.58V)",
+    category: "battery",
+    capacityWh: 57,
+    voltage: "11.58",
+    cells: 3,
+    partNumber: "01AV478",
+    altPartNumbers: ["01AV479", "01AV480", "SB10K97620", "SB10K97621", "SB10K97622", "L17M3P71", "L17L3P71", "L17M3P72"],
+    seller: "iFixit",
+    priceDemo: "58.99",
+    currency: "USD",
+    status: "verified",
+    sourceId: "src-ifixit-t480s-battery",
+    verifiedAt: VERIFIED_AT,
+    notes: "Exact 57Wh 3-cell 11.58V internal battery for ThinkPad T480s (20L7/20L8); Lenovo FRU 01AV478/479/480."
   }
 ];
 
@@ -717,6 +758,16 @@ const compatibility: CatalogData["compatibility"] = [
     fitmentNote: "Exact 68Wh 7.6V 4-cell family for this shared Dell battery family.",
     sourceId: "src-parts-people-4gvmp",
     evidenceQuote: "Genuine DELL OEM 4-Cell 68Wh battery for Latitude 5400, 5500, Precision 3540, Inspiron 7590/7591/7791 2-in-1, and Latitude 5400 Chromebook.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-t480s-01av478",
+    modelId: "lenovo-thinkpad-t480s",
+    partId: "part-01av478-57wh",
+    fitmentNote: "Exact 57Wh 3-cell 11.58V internal battery for ThinkPad T480s (20L7/20L8); Lenovo FRU 01AV478/479/480.",
+    sourceId: "src-lenovo-t480s-frubom",
+    evidenceQuote: "Lenovo T480s FRU BOM (20L7/20L8): 01AV478 N Internal, 3c, 57Wh, LiIon, LGC; 01AV479/480 are SMP alternates.",
     status: "verified",
     verifiedAt: VERIFIED_AT
   }
