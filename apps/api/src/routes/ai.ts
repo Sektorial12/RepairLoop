@@ -41,7 +41,9 @@ const SymptomBodySchema = z.object({
 });
 
 const ShopIntakeBodySchema = z.object({
-  text: z.string().min(3).max(2000)
+  text: z.string().min(3).max(2000),
+  modelQuery: z.string().min(1).max(200).optional(),
+  installedPartNumber: z.string().min(1).max(100).optional()
 });
 
 const ExplainBodySchema = z
@@ -272,8 +274,12 @@ ${JSON.stringify(parsed.data.text)}`,
 
         const catalog = await loadCatalog();
         const result = matchCatalog(catalog, {
-          modelQuery: extraction.modelQuery ?? undefined,
-          installedPartNumber: extraction.installedPartNumber ?? undefined,
+          modelQuery:
+            parsed.data.modelQuery ?? extraction.modelQuery ?? undefined,
+          installedPartNumber:
+            parsed.data.installedPartNumber ??
+            extraction.installedPartNumber ??
+            undefined,
           designCapacityMwh: extraction.designCapacityMwh ?? undefined,
           fullChargeCapacityMwh:
             extraction.fullChargeCapacityMwh ?? undefined,

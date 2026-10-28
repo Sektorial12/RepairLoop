@@ -77,6 +77,31 @@ test("PayPal return recovers the order into the receipt lookup", async ({
   await expect(page.getByLabel("Payment recovery")).toHaveValue("TEST-ORDER");
 });
 
+test("a shop quote opens the buyer checkout flow", async ({ page }) => {
+  await mockModels(page);
+  await mockMatches(page);
+  await page.route("**/api/repair-cases/case-test", (route) =>
+    route.fulfill({
+      json: {
+        case: {
+          modelId: "dell-latitude-5410",
+          installedPartNumber: "R8D7N",
+          designCapacityMwh: 51000,
+          fullChargeCapacityMwh: 40000,
+          symptomTags: ["battery_runtime_short"]
+        }
+      }
+    })
+  );
+
+  await page.goto("/check?case=case-test");
+
+  await expect(page.getByText(/Shop-approved quote/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Verified replacement" })
+  ).toBeVisible({ timeout: 20_000 });
+});
+
 test("Start over clears the demo identity", async ({ page }) => {
   await mockModels(page);
   await mockMatches(page);
@@ -165,11 +190,17 @@ test("shop intake drafts a verified quote and adds it after approval", async ({
   await expect(page.getByText("R8D7N").first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Buy at seller/ })).toBeVisible();
 
+  await page.getByRole("checkbox").check();
+  await expect(page.getByRole("checkbox")).toBeChecked();
+
   await page
     .getByRole("button", { name: "Approve and add to queue" })
     .click();
   await expect(
     page.getByRole("button", { name: "Added to shop queue" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "this checkout link" })
   ).toBeVisible();
 });
 

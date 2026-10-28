@@ -10,7 +10,7 @@ RepairLoop turns a laptop battery report or label photo into a source-linked rep
 
 **Coverage:** 17 source-linked Dell Latitude/Precision/Inspiron models and the Lenovo ThinkPad T480s across the shared Dell 42/51/68Wh families and the T480s 57Wh family. Unsupported models are refused and can be requested through the public issue tracker.
 
-**Shop mode:** `/shop` provides an AI-assisted intake pipeline (customer text → extracted facts → deterministic catalog match → human-approved quote) with a seller handoff. AI never chooses fitment or captures payment.
+**Shop mode:** `/shop` provides an AI-assisted intake pipeline (customer text → extracted facts → deterministic catalog match → human-reviewed quote) with a seller handoff and a shareable customer checkout link tied to the existing PayPal Sandbox flow. AI never chooses fitment or captures payment.
 
 ## Why this exists
 
@@ -94,7 +94,7 @@ npm test                 # API, webhook, and PayPal unit tests
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run test:e2e         # 14 browser tests: desktop + mobile Chromium; WebKit mobile in CI
+npm run test:e2e         # 15 browser tests: desktop + mobile Chromium; WebKit mobile in CI
 ```
 
 The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the deployed API.

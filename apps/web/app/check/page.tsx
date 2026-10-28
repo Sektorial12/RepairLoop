@@ -814,6 +814,74 @@ export default function CheckPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const caseId = new URLSearchParams(window.location.search).get("case");
+    if (!caseId) return;
+
+    initialModelSelected.current = true;
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const response = await fetch(
+          `${apiBaseUrl}/api/repair-cases/${encodeURIComponent(caseId)}`,
+          { cache: "no-store" }
+        );
+        if (!response.ok) {
+          throw new Error(`Shop quote returned ${response.status}`);
+        }
+        const data = (await response.json()) as {
+          case: {
+            modelId: string | null;
+            installedPartNumber: string | null;
+            designCapacityMwh: number | null;
+            fullChargeCapacityMwh: number | null;
+            symptomTags: string[];
+          };
+        };
+        if (cancelled) return;
+        const item = data.case;
+        setModelId(item.modelId ?? "");
+        setInstalledPartNumber(item.installedPartNumber ?? "");
+        setDesignCapacityMwh(
+          item.designCapacityMwh !== null
+            ? String(item.designCapacityMwh)
+            : ""
+        );
+        setFullChargeCapacityMwh(
+          item.fullChargeCapacityMwh !== null
+            ? String(item.fullChargeCapacityMwh)
+            : ""
+        );
+        setSymptomTags(item.symptomTags ?? []);
+        await runMatch({
+          modelId: item.modelId ?? undefined,
+          installedPartNumber: item.installedPartNumber ?? undefined,
+          designCapacityMwh: item.designCapacityMwh ?? undefined,
+          fullChargeCapacityMwh: item.fullChargeCapacityMwh ?? undefined,
+          symptomTags: item.symptomTags ?? []
+        });
+        setPaymentNotice(
+          "Shop-approved quote. Review the exact part and the PayPal total before approving."
+        );
+      } catch (caught) {
+        if (!cancelled) {
+          setError(
+            caught instanceof Error
+              ? caught.message
+              : "Could not load the shop quote."
+          );
+        }
+      }
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const demoStarted = useRef(false);
 
   useEffect(() => {

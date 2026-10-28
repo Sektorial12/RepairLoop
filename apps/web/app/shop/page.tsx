@@ -99,6 +99,10 @@ export default function ShopPage() {
   const [queue, setQueue] = useState<RepairCase[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
+  const [reviewModel, setReviewModel] = useState("");
+  const [reviewPart, setReviewPart] = useState("");
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const [checkoutLink, setCheckoutLink] = useState<string | null>(null);
 
   const runIntake = async () => {
     if (!text.trim()) return;
@@ -106,6 +110,8 @@ export default function ShopPage() {
     setError(null);
     setDraft(null);
     setAdded(false);
+    setReviewConfirmed(false);
+    setCheckoutLink(null);
 
     try {
       const response = await fetch(`${apiBaseUrl}/api/shop/intake`, {
@@ -124,10 +130,57 @@ export default function ShopPage() {
             `Intake returned ${response.status}.`
         );
       }
-      setDraft(body as ShopIntakeDraft);
+      const next = body as ShopIntakeDraft;
+      setDraft(next);
+      setReviewModel(next.extraction.modelQuery ?? "");
+      setReviewPart(next.extraction.installedPartNumber ?? "");
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Could not draft the quote."
+      );
+    } finally {
+      setDrafting(false);
+    }
+  };
+
+  const recheck = async () => {
+    if (!draft) return;
+    setDrafting(true);
+    setError(null);
+    setReviewConfirmed(false);
+    setCheckoutLink(null);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/shop/intake`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          text,
+          modelQuery: reviewModel.trim() || undefined,
+          installedPartNumber: reviewPart.trim() || undefined
+        })
+      });
+      const body = (await response.json().catch(() => null)) as
+        | ShopIntakeDraft
+        | { error?: string; message?: string }
+        | null;
+      if (!response.ok || !body || !("ok" in body)) {
+        throw new Error(
+          (body as { message?: string; error?: string } | null)?.message ??
+            (body as { error?: string } | null)?.error ??
+            `Intake returned ${response.status}.`
+        );
+      }
+      setDraft(body as ShopIntakeDraft);
+      setReviewModel((body as ShopIntakeDraft).extraction.modelQuery ?? "");
+      setReviewPart(
+        (body as ShopIntakeDraft).match.installedPart?.partNumber ??
+          (body as ShopIntakeDraft).extraction.installedPartNumber ??
+          ""
+      );
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Could not re-check the part."
       );
     } finally {
       setDrafting(false);
@@ -145,7 +198,9 @@ export default function ShopPage() {
         body: JSON.stringify({
           modelId: draft.match.model.id,
           installedPartNumber:
-            draft.extraction.installedPartNumber ?? undefined,
+            draft.match.installedPart?.partNumber ||
+            reviewPart.trim() ||
+            undefined,
           designCapacityMwh:
             draft.extraction.designCapacityMwh ?? undefined,
           fullChargeCapacityMwh:
@@ -186,6 +241,9 @@ export default function ShopPage() {
         },
         ...current
       ]);
+      if (body?.repairCaseId) {
+        setCheckoutLink(`/check?case=${encodeURIComponent(body.repairCaseId)}`);
+      }
       setAdded(true);
     } catch (caught) {
       setError(
@@ -307,6 +365,50 @@ export default function ShopPage() {
                     </div>
                   ) : null}
 
+                  <div className="field-grid">
+                    <label className="field">
+                      <span>Model correction (optional)</span>
+                      <input
+                        value={reviewModel}
+                        onChange={(event) => setReviewModel(event.target.value)}
+                        placeholder="e.g. Latitude 5410"
+                        autoComplete="off"
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Installed part correction (optional)</span>
+                      <input
+                        value={reviewPart}
+                        onChange={(event) => setReviewPart(event.target.value)}
+                        placeholder="e.g. R8D7N"
+                        autoComplete="off"
+                      />
+                    </label>
+                  </div>
+                  <div className="button-row">
+                    <button
+                      className="button ghost"
+                      type="button"
+                      onClick={() => void recheck()}
+                      disabled={drafting || !text.trim()}
+                    >
+                      {drafting ? "Re-checking…" : "Re-check catalog"}
+                    </button>
+                  </div>
+                  <label className="consent-row">
+                    <input
+                      type="checkbox"
+                      checked={reviewConfirmed}
+                      onChange={(event) =>
+                        setReviewConfirmed(event.target.checked)
+                      }
+                    />
+                    <span>
+                      I reviewed the extracted model, installed part, symptoms,
+                      and quote. The catalog—not AI—decided fitment.
+                    </span>
+                  </label>
+
                   {draft.quote ? (
                     <article className="option-card selected">
                       <div className="option-top">
@@ -362,7 +464,7 @@ export default function ShopPage() {
                           className="button primary"
                           type="button"
                           onClick={() => void addToQueue()}
-                          disabled={added}
+                          disabled={added || !reviewConfirmed}
                         >
                           {added
                             ? "Added to shop queue"
@@ -370,6 +472,17 @@ export default function ShopPage() {
                         </button>
                       </div>
                     </article>
+                  ) : null}
+
+                  {checkoutLink ? (
+                    <div className="notice">
+                      <strong>Customer checkout ready.</strong> Share{" "}
+                      <Link className="source-link" href={checkoutLink}>
+                        this checkout link
+                      </Link>{" "}
+                      with the customer. The link opens the shop-approved quote;
+                      payment is still PayPal Sandbox.
+                    </div>
                   ) : null}
 
                   {draft.match.lowerCapacity.length > 0 ? (
