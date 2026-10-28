@@ -147,7 +147,7 @@ export default function CatalogPage() {
               <div className="notice notice-danger">{error}</div>
             ) : data ? (
               <>
-                <span className="meta-label">Supported models</span>
+                <span className="meta-label">Supported models ({data.models.length})</span>
                 <div className="catalog-models">
                   {data.models.map((model) => (
                     <span className="catalog-model" key={model.id}>

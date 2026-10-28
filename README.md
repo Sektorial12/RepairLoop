@@ -8,6 +8,8 @@ RepairLoop turns a laptop battery report or label photo into a source-linked rep
 
 **Status:** Working prototype. The verified/no-match/safety battery check flow, live Gemini extraction, and PayPal Sandbox checkout/capture are implemented. No fake paid state is shown.
 
+**Coverage:** 16 source-linked Dell Latitude/Precision/Inspiron models across the shared 42Wh, 51Wh, and 68Wh battery families. Unsupported models are refused and can be requested through the public issue tracker.
+
 ## Why this exists
 
 Dell lists three battery capacities for the Latitude 5400 — 42Wh, 51Wh, and 68Wh — with different voltages, dimensions, and multiple Dell part numbers. The same machine family can use several batteries, and a plausible-looking 68Wh battery can be the wrong voltage. RepairLoop starts with this narrow, verifiable case:

@@ -209,6 +209,7 @@ export default function CheckPage() {
   const [step, setStep] = useState(0);
   const [models, setModels] = useState<Model[]>([]);
   const [modelsLoading, setModelsLoading] = useState(true);
+  const [modelSearch, setModelSearch] = useState("");
   const [modelId, setModelId] = useState("");
   const [installedPartNumber, setInstalledPartNumber] = useState("");
   const [designCapacityMwh, setDesignCapacityMwh] = useState("");
@@ -282,6 +283,19 @@ export default function CheckPage() {
   }, [modelId]);
 
   const selectedModel = models.find((model) => model.id === modelId);
+  const normalizedModelSearch = modelSearch.trim().toLowerCase();
+  const visibleModels = models.filter((model) => {
+    if (!normalizedModelSearch) return true;
+    return [model.model, ...model.aliases].some((candidate) =>
+      candidate.toLowerCase().includes(normalizedModelSearch)
+    );
+  });
+  if (
+    selectedModel &&
+    !visibleModels.some((model) => model.id === selectedModel.id)
+  ) {
+    visibleModels.unshift(selectedModel);
+  }
   const sourceFor = (sourceId?: string): Source | undefined =>
     result?.sources?.find((source) => source.id === sourceId);
 
@@ -729,6 +743,7 @@ export default function CheckPage() {
     setExplanationError(null);
     setPaymentNotice(null);
     setLookupOrderId("");
+    setModelSearch("");
   };
 
   const chooseOption = (option: MatchOption) => {
@@ -969,6 +984,15 @@ export default function CheckPage() {
                 <span className="pill">Step 1</span>
                 <h2 id="device-heading">What laptop are we repairing?</h2>
               </div>
+              <label className="field" style={{ marginBottom: "0.8rem" }}>
+                <span>Find a supported model</span>
+                <input
+                  value={modelSearch}
+                  onChange={(event) => setModelSearch(event.target.value)}
+                  placeholder="Latitude, Precision, Inspiron, 5410…"
+                  autoComplete="off"
+                />
+              </label>
               <div className="field-grid">
                 <label className="field">
                   <span>Supported model</span>
@@ -980,7 +1004,7 @@ export default function CheckPage() {
                     {modelsLoading ? (
                       <option>Loading models…</option>
                     ) : (
-                      models.map((model) => (
+                      visibleModels.map((model) => (
                         <option key={model.id} value={model.id}>
                           {model.brand} {model.model}
                         </option>
@@ -998,8 +1022,17 @@ export default function CheckPage() {
                 </div>
               </div>
               <p className="hint">
-                We start with the Dell Latitude 5400 battery family. Unsupported
-                models get a clear “no verified match” instead of a guess.
+                We cover source-linked Dell Latitude, Precision, and Inspiron
+                battery families. Unsupported models get a clear “no verified
+                match” instead of a guess.{" "}
+                <a
+                  className="inline-link"
+                  href="https://github.com/Sektorial12/RepairLoop/issues/new?title=Model%20request&body=Device%20model%3A%0APart%20number%3A%0A"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Request another model ↗
+                </a>
               </p>
               <div className="button-row">
                 <button

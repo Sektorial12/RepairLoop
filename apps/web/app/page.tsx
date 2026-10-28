@@ -3,8 +3,20 @@ import { ApiStatus } from "./components/ApiStatus";
 const models = [
   "Latitude 5400",
   "Latitude 5401",
+  "Latitude 5410",
+  "Latitude 5411",
   "Latitude 5500",
-  "Precision 3540"
+  "Latitude 5501",
+  "Latitude 5510",
+  "Latitude 5511",
+  "Latitude 5400 Chromebook",
+  "Precision 3540",
+  "Precision 3541",
+  "Precision 3550",
+  "Precision 3551",
+  "Inspiron 7590 2-in-1",
+  "Inspiron 7591 2-in-1",
+  "Inspiron 7791 2-in-1"
 ];
 
 const steps = [
@@ -193,11 +205,11 @@ export default function HomePage() {
         <section className="section" id="models">
           <div className="section-head">
             <p className="eyebrow">Supported today</p>
-            <h2>One battery family. Verified before it expands.</h2>
+            <h2>Three Dell battery families. Verified across 16 models.</h2>
             <p>
-              We start with the shared Latitude 5400 battery family because the
-              part-number confusion is real and the data can be checked. Other
-              models are requested, not guessed.
+              The shared 42Wh, 51Wh, and 68Wh Dell battery families span
+              Latitude, Precision, and Inspiron models. Each compatibility row
+              is source-linked; other models are requested, not guessed.
             </p>
           </div>
           <div className="model-row">

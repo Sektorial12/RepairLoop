@@ -37,6 +37,14 @@ const sources: CatalogData["sources"] = [
     notes: "Dell 3-cell 42Wh replacement battery, CPX-7T0D3, compatible with Latitude 5400/5500/Precision 3540."
   },
   {
+    id: "src-parts-people-1v1xf",
+    publisher: "Parts-People",
+    url: "https://www.parts-people.com/index.php?action=item&id=30353",
+    accessedAt: ACCESSED_AT,
+    licenseTerms: "Public product listing; facts used; no images copied.",
+    notes: "Genuine Dell OEM 3-cell 42Wh 11.4V battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; DP/N XV8CJ, 27W58, 7VTMN."
+  },
+  {
     id: "src-parts-people",
     publisher: "Parts-People",
     url: "https://www.parts-people.com/index.php?action=category&id=140&refine=battery&subid=1311",
@@ -50,7 +58,7 @@ const sources: CatalogData["sources"] = [
     url: "https://www.parts-people.com/index.php?action=item&id=30351",
     accessedAt: ACCESSED_AT,
     licenseTerms: "Public product listing; facts used; no images copied.",
-    notes: "Genuine Dell OEM 4-cell 68Wh 7.6V battery for Latitude 5400/5500/Precision 3540; DP/N RF7WM, C5GV2, X77XY, 9JRYT, MCV1G, 5H46R."
+    notes: "Genuine Dell OEM 4-cell 68Wh 7.6V battery for Latitude 5400/5500/Precision 3540, Inspiron 7590/7591/7791 2-in-1, and Latitude 5400 Chromebook; DP/N RF7WM, C5GV2, X77XY, 9JRYT, MCV1G, 5H46R."
   },
   {
     id: "src-parts-people-r8d7n",
@@ -58,7 +66,7 @@ const sources: CatalogData["sources"] = [
     url: "https://www.parts-people.com/index.php?action=item&id=30356",
     accessedAt: ACCESSED_AT,
     licenseTerms: "Public product listing; facts used; no images copied.",
-    notes: "Dell OEM 3-cell 51Wh battery for Latitude 5400/5401/5500/Precision 3540; part R8D7N."
+    notes: "Dell OEM 3-cell 51Wh battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; part R8D7N."
   },
   {
     id: "src-ifixit-guide",
@@ -133,6 +141,102 @@ const models: CatalogData["models"] = [
     family: "Precision",
     model: "Precision 3540",
     aliases: ["Precision 3540", "Dell Precision 3540"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-latitude-5410",
+    brand: "Dell",
+    family: "Latitude",
+    model: "Latitude 5410",
+    aliases: ["Latitude 5410", "Dell Latitude 5410", "5410"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-latitude-5411",
+    brand: "Dell",
+    family: "Latitude",
+    model: "Latitude 5411",
+    aliases: ["Latitude 5411", "Dell Latitude 5411", "5411"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-latitude-5501",
+    brand: "Dell",
+    family: "Latitude",
+    model: "Latitude 5501",
+    aliases: ["Latitude 5501", "Dell Latitude 5501", "5501"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-latitude-5510",
+    brand: "Dell",
+    family: "Latitude",
+    model: "Latitude 5510",
+    aliases: ["Latitude 5510", "Dell Latitude 5510", "5510"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-latitude-5511",
+    brand: "Dell",
+    family: "Latitude",
+    model: "Latitude 5511",
+    aliases: ["Latitude 5511", "Dell Latitude 5511", "5511"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-precision-3541",
+    brand: "Dell",
+    family: "Precision",
+    model: "Precision 3541",
+    aliases: ["Precision 3541", "Dell Precision 3541", "3541"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-precision-3550",
+    brand: "Dell",
+    family: "Precision",
+    model: "Precision 3550",
+    aliases: ["Precision 3550", "Dell Precision 3550", "3550"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-precision-3551",
+    brand: "Dell",
+    family: "Precision",
+    model: "Precision 3551",
+    aliases: ["Precision 3551", "Dell Precision 3551", "3551"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-inspiron-7590-2in1",
+    brand: "Dell",
+    family: "Inspiron",
+    model: "Inspiron 7590 2-in-1",
+    aliases: ["Inspiron 7590 2-in-1", "Inspiron 15 7590 2-in-1", "Dell Inspiron 7590", "7590"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-inspiron-7591-2in1",
+    brand: "Dell",
+    family: "Inspiron",
+    model: "Inspiron 7591 2-in-1",
+    aliases: ["Inspiron 7591 2-in-1", "Inspiron 15 7591 2-in-1", "Dell Inspiron 7591", "7591"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-inspiron-7791-2in1",
+    brand: "Dell",
+    family: "Inspiron",
+    model: "Inspiron 7791 2-in-1",
+    aliases: ["Inspiron 7791 2-in-1", "Inspiron 17 7791 2-in-1", "Dell Inspiron 7791", "7791"],
+    regulatoryModel: null
+  },
+  {
+    id: "dell-latitude-5400-chromebook",
+    brand: "Dell",
+    family: "Latitude",
+    model: "Latitude 5400 Chromebook",
+    aliases: ["Latitude 5400 Chromebook", "Latitude 5400 Chromebook Enterprise", "Dell Latitude 5400 Chromebook", "5400 Chromebook"],
     regulatoryModel: null
   }
 ];
@@ -375,6 +479,246 @@ const compatibility: CatalogData["compatibility"] = [
       "Dell 3HWPP is a 68Wh 15.2V battery. Dell's Latitude 5400 68Wh specification is 7.6V.",
     status: "unverified",
     verifiedAt: null
+  },
+  {
+    id: "compat-latitude-5410-1v1xf",
+    modelId: "dell-latitude-5410",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5410-r8d7n",
+    modelId: "dell-latitude-5410",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5411-1v1xf",
+    modelId: "dell-latitude-5411",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5411-r8d7n",
+    modelId: "dell-latitude-5411",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5501-1v1xf",
+    modelId: "dell-latitude-5501",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5501-r8d7n",
+    modelId: "dell-latitude-5501",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5510-1v1xf",
+    modelId: "dell-latitude-5510",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5510-r8d7n",
+    modelId: "dell-latitude-5510",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5511-1v1xf",
+    modelId: "dell-latitude-5511",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5511-r8d7n",
+    modelId: "dell-latitude-5511",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-precision-3541-1v1xf",
+    modelId: "dell-precision-3541",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-precision-3541-r8d7n",
+    modelId: "dell-precision-3541",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-precision-3550-1v1xf",
+    modelId: "dell-precision-3550",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-precision-3550-r8d7n",
+    modelId: "dell-precision-3550",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-precision-3551-1v1xf",
+    modelId: "dell-precision-3551",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-precision-3551-r8d7n",
+    modelId: "dell-precision-3551",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-inspiron-7591-2in1-1v1xf",
+    modelId: "dell-inspiron-7591-2in1",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-inspiron-7591-2in1-r8d7n",
+    modelId: "dell-inspiron-7591-2in1",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5400-chromebook-1v1xf",
+    modelId: "dell-latitude-5400-chromebook",
+    partId: "part-1v1xf-42wh",
+    fitmentNote: "Verified 42Wh 3-cell 11.4V option for the shared battery family; lower capacity when the original is 51Wh or 68Wh.",
+    sourceId: "src-parts-people-1v1xf",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 42Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3540, 3541, 3550, 3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5400-chromebook-r8d7n",
+    modelId: "dell-latitude-5400-chromebook",
+    partId: "part-r8d7n-51wh",
+    fitmentNote: "Verified 51Wh 3-cell 11.4V option for the shared battery family; exact when the installed configuration is 51Wh.",
+    sourceId: "src-parts-people-r8d7n",
+    evidenceQuote: "Genuine DELL OEM 3-Cell 51Wh battery for Latitude 5400, 5401, 5500, 5501, 5510, 5511, 5410, 5411, Precision 3551, 3541, 3540, 3550, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-inspiron-7590-2in1-4gvmp",
+    modelId: "dell-inspiron-7590-2in1",
+    partId: "part-4gvmp-68wh",
+    fitmentNote: "Exact 68Wh 7.6V 4-cell family for this shared Dell battery family.",
+    sourceId: "src-parts-people-4gvmp",
+    evidenceQuote: "Genuine DELL OEM 4-Cell 68Wh battery for Latitude 5400, 5500, Precision 3540, Inspiron 7590/7591/7791 2-in-1, and Latitude 5400 Chromebook.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-inspiron-7591-2in1-4gvmp",
+    modelId: "dell-inspiron-7591-2in1",
+    partId: "part-4gvmp-68wh",
+    fitmentNote: "Exact 68Wh 7.6V 4-cell family for this shared Dell battery family.",
+    sourceId: "src-parts-people-4gvmp",
+    evidenceQuote: "Genuine DELL OEM 4-Cell 68Wh battery for Latitude 5400, 5500, Precision 3540, Inspiron 7590/7591/7791 2-in-1, and Latitude 5400 Chromebook.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-inspiron-7791-2in1-4gvmp",
+    modelId: "dell-inspiron-7791-2in1",
+    partId: "part-4gvmp-68wh",
+    fitmentNote: "Exact 68Wh 7.6V 4-cell family for this shared Dell battery family.",
+    sourceId: "src-parts-people-4gvmp",
+    evidenceQuote: "Genuine DELL OEM 4-Cell 68Wh battery for Latitude 5400, 5500, Precision 3540, Inspiron 7590/7591/7791 2-in-1, and Latitude 5400 Chromebook.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
+  },
+  {
+    id: "compat-latitude-5400-chromebook-4gvmp",
+    modelId: "dell-latitude-5400-chromebook",
+    partId: "part-4gvmp-68wh",
+    fitmentNote: "Exact 68Wh 7.6V 4-cell family for this shared Dell battery family.",
+    sourceId: "src-parts-people-4gvmp",
+    evidenceQuote: "Genuine DELL OEM 4-Cell 68Wh battery for Latitude 5400, 5500, Precision 3540, Inspiron 7590/7591/7791 2-in-1, and Latitude 5400 Chromebook.",
+    status: "verified",
+    verifiedAt: VERIFIED_AT
   }
 ];
 
