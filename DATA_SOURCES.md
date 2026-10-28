@@ -57,3 +57,7 @@ From a redacted demo battery report:
 7. Never let AI create or alter a compatibility row.
 
 Dell is a trademark of Dell Inc. RepairLoop is not affiliated with or endorsed by Dell.
+
+## Adjacent-family review (28 Oct 2026)
+
+The Lenovo ThinkPad T480 was evaluated as the next high-volume battery family and **skipped**. Public sources conflict on the `01AV423` part (24Wh/11.4V in one listing versus 23Wh/13.05V in another), and the T480 has separate internal and external battery slots. Adding it would violate the exact, source-backed fitment rule. No Lenovo compatibility rows are claimed; the request-a-model path is the honest long-tail option.
