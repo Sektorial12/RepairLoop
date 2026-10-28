@@ -893,6 +893,9 @@ export default function CheckPage() {
             <Link className="nav-link" href="/catalog">
               Catalog
             </Link>
+            <Link className="nav-link" href="/shop">
+              Shop mode
+            </Link>
             <span className="badge">Sandbox prototype</span>
           </div>
         </nav>

@@ -10,6 +10,8 @@ RepairLoop turns a laptop battery report or label photo into a source-linked rep
 
 **Coverage:** 16 source-linked Dell Latitude/Precision/Inspiron models across the shared 42Wh, 51Wh, and 68Wh battery families. Unsupported models are refused and can be requested through the public issue tracker.
 
+**Shop mode:** `/shop` provides an AI-assisted intake pipeline (customer text → extracted facts → deterministic catalog match → human-approved quote) with a seller handoff. AI never chooses fitment or captures payment.
+
 ## Why this exists
 
 Dell lists three battery capacities for the Latitude 5400 — 42Wh, 51Wh, and 68Wh — with different voltages, dimensions, and multiple Dell part numbers. The same machine family can use several batteries, and a plausible-looking 68Wh battery can be the wrong voltage. RepairLoop starts with this narrow, verifiable case:
@@ -92,7 +94,7 @@ npm test                 # API, webhook, and PayPal unit tests
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run test:e2e         # 12 browser tests: desktop + mobile Chromium; WebKit mobile in CI
+npm run test:e2e         # 13 browser tests: desktop + mobile Chromium; WebKit mobile in CI
 ```
 
 The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the deployed API.

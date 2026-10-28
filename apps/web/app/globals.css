@@ -1341,3 +1341,62 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+
+/* Shop mode */
+.shop-grid {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  align-items: start;
+}
+
+.shop-draft {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.ai-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  color: var(--teal-dark);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.ai-steps span {
+  border: 1px solid #b7ddd6;
+  border-radius: 999px;
+  background: var(--teal-soft);
+  padding: 0.3rem 0.55rem;
+}
+
+.shop-case-list {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+.shop-case {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 0.8rem 0.9rem;
+}
+
+.shop-case p {
+  margin: 0.35rem 0 0;
+}
+
+.shop-case-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+@media (max-width: 1050px) {
+  .shop-grid {
+    grid-template-columns: 1fr;
+  }
+}

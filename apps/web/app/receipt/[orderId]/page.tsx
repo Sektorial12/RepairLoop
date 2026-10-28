@@ -127,6 +127,9 @@ export default function ReceiptPage() {
             <Link className="nav-link" href="/catalog">
               Catalog
             </Link>
+            <Link className="nav-link" href="/shop">
+              Shop mode
+            </Link>
             <span className="badge">Sandbox receipt</span>
           </div>
         </nav>

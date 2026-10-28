@@ -14,6 +14,7 @@
    - brand, model, regulatory model, serial prefix, part number, capacity, voltage, confidence, warnings
 3. **Symptom structuring:** map free text to controlled symptom tags and one optional clarifying question
 4. **Grounded explanation:** explain why a catalog-verified part fits, using only retrieved evidence, with a citation
+5. **Shop intake:** extract explicit device/part/symptom facts from a customer message, then let the deterministic catalog draft a human-approved quote
 
 ## What AI must never do
 

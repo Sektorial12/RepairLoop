@@ -77,6 +77,85 @@ test("PayPal return recovers the order into the receipt lookup", async ({
   await expect(page.getByLabel("Payment recovery")).toHaveValue("TEST-ORDER");
 });
 
+test("shop intake drafts a verified quote and adds it after approval", async ({
+  page
+}) => {
+  await page.route("**/api/repair-cases", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { cases: [] } });
+      return;
+    }
+    await route.fulfill({ json: { repairCaseId: "case-test" } });
+  });
+  await page.route("**/api/shop/intake", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        extraction: {
+          modelQuery: "Latitude 5410",
+          installedPartNumber: "R8D7N",
+          designCapacityMwh: null,
+          fullChargeCapacityMwh: null,
+          symptomTags: ["battery_runtime_short"],
+          clarifyingQuestion: null,
+          safetyFlag: false,
+          confidence: 0.93,
+          warnings: []
+        },
+        match: {
+          status: "verified_match",
+          model: {
+            id: "dell-latitude-5410",
+            brand: "Dell",
+            model: "Latitude 5410"
+          },
+          installedPart: { partNumber: "R8D7N" },
+          healthPct: null,
+          healthNote: null,
+          exact: { part: { partNumber: "R8D7N" } },
+          lowerCapacity: [{ part: { partNumber: "1V1XF" } }],
+          excluded: [],
+          reasons: [],
+          safety: null
+        },
+        quote: {
+          partId: "part-r8d7n-51wh",
+          partNumber: "R8D7N",
+          name: "Dell 51Wh 3-cell replacement battery (11.4V)",
+          amount: "99.99",
+          currency: "USD",
+          seller: "Parts-People",
+          sourcePublisher: "Parts-People",
+          sourceUrl:
+            "https://www.parts-people.com/index.php?action=item&id=30356",
+          sellerUrl:
+            "https://www.parts-people.com/index.php?action=search&search_query=R8D7N",
+          fitmentNote: "Verified 51Wh 3-cell 11.4V option.",
+          verifiedAt: "2026-10-26T12:00:00.000Z"
+        },
+        sellerUrl:
+          "https://www.parts-people.com/index.php?action=search&search_query=R8D7N"
+      }
+    })
+  );
+
+  await page.goto("/shop");
+  await page
+    .getByLabel("Customer request")
+    .fill("Dell Latitude 5410, battery label R8D7N, dies after 20 minutes.");
+  await page.getByRole("button", { name: "Draft verified quote" }).click();
+
+  await expect(page.getByText("R8D7N").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Buy at seller/ })).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Approve and add to queue" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Added to shop queue" })
+  ).toBeVisible();
+});
+
 test("PayPal cancel return shows a no-charge notice", async ({ page }) => {
   await mockModels(page);
   await page.goto("/check?paypal=cancel");

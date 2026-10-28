@@ -118,6 +118,9 @@ export default function CatalogPage() {
             <Link className="nav-link" href="/check">
               Check a device
             </Link>
+            <Link className="nav-link" href="/shop">
+              Shop mode
+            </Link>
             <span className="badge">Source-linked</span>
           </div>
         </nav>

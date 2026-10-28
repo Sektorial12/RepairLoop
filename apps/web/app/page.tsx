@@ -55,6 +55,9 @@ export default function HomePage() {
             <a className="nav-link" href="/catalog">
               Catalog
             </a>
+            <a className="nav-link" href="/shop">
+              Shop mode
+            </a>
             <span className="badge">Sandbox prototype</span>
           </div>
         </nav>
