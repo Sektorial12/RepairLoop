@@ -262,7 +262,10 @@ export default function CheckPage() {
             data.models.length > 0 &&
             !data.models.some((model) => model.id === modelId)
           ) {
-            setModelId(data.models[0].id);
+            const preferred = data.models.find(
+              (model) => model.id === "dell-latitude-5400"
+            );
+            setModelId(preferred?.id ?? data.models[0].id);
           }
         }
       } catch (caught) {
@@ -290,10 +293,7 @@ export default function CheckPage() {
       candidate.toLowerCase().includes(normalizedModelSearch)
     );
   });
-  if (
-    selectedModel &&
-    !visibleModels.some((model) => model.id === selectedModel.id)
-  ) {
+  if (selectedModel && visibleModels.length === 0) {
     visibleModels.unshift(selectedModel);
   }
   const sourceFor = (sourceId?: string): Source | undefined =>
@@ -988,7 +988,18 @@ export default function CheckPage() {
                 <span>Find a supported model</span>
                 <input
                   value={modelSearch}
-                  onChange={(event) => setModelSearch(event.target.value)}
+                  onChange={(event) => {
+                    const query = event.target.value;
+                    setModelSearch(query);
+                    const normalized = query.trim().toLowerCase();
+                    if (!normalized) return;
+                    const first = models.find((model) =>
+                      [model.model, ...model.aliases].some((candidate) =>
+                        candidate.toLowerCase().includes(normalized)
+                      )
+                    );
+                    if (first) setModelId(first.id);
+                  }}
                   placeholder="Latitude, Precision, Inspiron, 5410…"
                   autoComplete="off"
                 />
