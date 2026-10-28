@@ -187,6 +187,50 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="section" id="ai">
+          <div className="section-head">
+            <p className="eyebrow">AI boundaries</p>
+            <h2>AI reads the mess. The catalog makes the call.</h2>
+            <p>
+              RepairLoop uses AI for input, explanation, and shop-intake
+              drafting — never for compatibility, price, stock, or payment
+              authorization.
+            </p>
+          </div>
+          <div className="grid three">
+            <article className="card">
+              <span className="pill">AI reads</span>
+              <h3>Reports, labels, symptoms</h3>
+              <p>
+                Gemini extracts structured fields from a redacted battery
+                report or label, structures free-text symptoms, and drafts a
+                shop quote from a customer request.
+              </p>
+            </article>
+            <article className="card">
+              <span className="pill">Catalog decides</span>
+              <h3>Fitment, price, refusal</h3>
+              <p>
+                A source-linked catalog decides compatibility, demo price, the
+                safety stop, and whether checkout opens. AI cannot create a
+                catalog row, invent a part, or capture a payment.
+              </p>
+            </article>
+            <article className="card">
+              <span className="pill">Human confirms</span>
+              <h3>Every gate is explicit</h3>
+              <p>
+                The consumer corrects extracted fields; a shop owner reviews
+                the model, part, symptoms, and quote; the buyer approves the
+                PayPal total.{" "}
+                <a className="inline-link" href="/ai-disclosure">
+                  Read the AI disclosure →
+                </a>
+              </p>
+            </article>
+          </div>
+        </section>
+
         <section className="section">
           <div className="refuse-card">
             <div>

@@ -113,6 +113,8 @@ The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the de
 ├── DATA_SOURCES.md
 ├── AI_USAGE.md
 ├── SECURITY.md
+├── DEVPOST.md
+├── VIDEO_SCRIPT.md
 └── LICENSE
 ```
 
