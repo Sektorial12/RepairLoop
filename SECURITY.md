@@ -34,6 +34,8 @@
 
 ## Data
 
+- The shop queue is browser-local; there is no public queue endpoint. The shareable receipt remains public by design and shows only sandbox part/amount/event data, not payer PII.
+
 - Store only the fields needed for a repair case: model, capacities, health %, confirmed part number, selected part, and payment references.
 - Prototype privacy, terms, and AI disclosure are linked in the app footer.
 - Webhook rows store event ID/type, order/capture IDs, and amount/currency only; do not persist payer name, email, address, or full PayPal payloads.
