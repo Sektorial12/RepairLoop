@@ -1570,7 +1570,28 @@ h3 {
 }
 
 .matrix-detail-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
   min-width: 0;
+}
+
+.matrix-detail-grid .meta-label,
+.matrix-detail-block .meta-label {
+  display: block;
+}
+
+.matrix-detail-grid a,
+.matrix-detail-grid strong,
+.matrix-detail-block p,
+.matrix-detail-head h2 {
+  overflow-wrap: anywhere;
+}
+
+.matrix-detail-grid a,
+.matrix-detail-grid strong {
+  font-size: 0.86rem;
+  line-height: 1.35;
 }
 
 .matrix-actions {
