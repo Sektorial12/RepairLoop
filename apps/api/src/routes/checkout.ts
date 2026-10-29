@@ -8,6 +8,7 @@ import { z } from "zod";
 import { loadCatalog } from "../catalog/load.js";
 import { corsOrigins } from "../config.js";
 import { matchCatalog } from "../catalog/matcher.js";
+import { checkPartAvailability } from "../checkout/availability.js";
 import {
   createCaptureToken,
   verifyCaptureToken
@@ -239,11 +240,11 @@ export async function checkoutRoutes(
         });
       }
 
-      if (selected.part.availability === "reported_out_of_stock") {
+      const availability = checkPartAvailability(selected.part.availability);
+      if (!availability.ok) {
         return reply.code(409).send({
-          error: "seller_reports_out_of_stock",
-          message:
-            "The fitment is verified, but the named seller reports this part out of stock. No order was created."
+          error: availability.error,
+          message: availability.message
         });
       }
 

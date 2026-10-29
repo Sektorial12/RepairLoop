@@ -173,7 +173,9 @@ const REASON_LABELS: Record<string, string> = {
     "Different voltage — not verified for your configuration.",
   higher_capacity_not_exact: "Higher capacity — not the exact original.",
   different_capacity: "Different capacity — not the exact original.",
-  unverified_for_configuration: "Unverified for your configuration."
+  unverified_for_configuration: "Unverified for your configuration.",
+  capacity_conflict:
+    "The reported design capacity conflicts with the installed part. Verify the label and report."
 };
 
 const REPAIR_GUIDES: Record<string, Array<{ label: string; href: string }>> = {
@@ -1948,10 +1950,15 @@ export default function CheckPage() {
                         </p>
                       </div>
 
-                      {selectedOption.part.availability ===
-                      "reported_out_of_stock" ? (
+                      {selectedOption.part.availability !==
+                      "reported_in_stock" ? (
                         <div className="notice notice-danger">
-                          <strong>Seller reports out of stock.</strong>{" "}
+                          <strong>
+                            {selectedOption.part.availability ===
+                            "reported_out_of_stock"
+                              ? "Seller reports out of stock."
+                              : "Seller stock is not verified."}
+                          </strong>{" "}
                           {selectedOption.part.availabilityNote} Checkout is
                           disabled for this part; choose a verified in-stock
                           option or check the seller.
@@ -2059,6 +2066,7 @@ function OptionCard({
 }) {
   const availability = option.part.availability ?? "unknown";
   const outOfStock = availability === "reported_out_of_stock";
+  const checkoutUnavailable = availability !== "reported_in_stock";
   return (
     <article className={`option-card ${selected ? "selected" : ""}`}>
       <div className="option-top">
@@ -2100,13 +2108,15 @@ function OptionCard({
           className="button primary"
           type="button"
           onClick={onChoose}
-          disabled={outOfStock}
+          disabled={checkoutUnavailable}
         >
           {outOfStock
             ? "Seller reports out of stock"
-            : lower
-              ? "Choose lower-capacity option"
-              : "Review this part"}
+            : availability === "unknown"
+              ? "Seller stock not verified"
+              : lower
+                ? "Choose lower-capacity option"
+                : "Review this part"}
         </button>
       </div>
     </article>

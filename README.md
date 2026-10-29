@@ -95,7 +95,7 @@ curl -sS http://127.0.0.1:3002/api/match \
 ## Verify
 
 ```bash
-npm test                 # 40 API, catalog, safety, webhook, token, and PayPal tests
+npm test                 # 45 API, catalog, safety, webhook, token, and PayPal tests
 npm run typecheck
 npm run build
 npx playwright install chromium

@@ -17,6 +17,22 @@ const normalize = (value: string): string =>
 
 const voltageOf = (part: PartRow): number => Number(part.voltage);
 
+const CAPACITY_TOLERANCE_RATIO = 0.1;
+const MIN_CAPACITY_TOLERANCE_MWH = 2000;
+
+function hasCapacityConflict(
+  designCapacityMwh: number | undefined,
+  installedCapacityWh: number
+): boolean {
+  if (!designCapacityMwh) return false;
+  const expectedMwh = installedCapacityWh * 1000;
+  const tolerance = Math.max(
+    MIN_CAPACITY_TOLERANCE_MWH,
+    expectedMwh * CAPACITY_TOLERANCE_RATIO
+  );
+  return Math.abs(designCapacityMwh - expectedMwh) > tolerance;
+}
+
 function findModel(models: ModelRow[], input: MatchInput): ModelRow | undefined {
   if (input.modelId) {
     const byId = models.find((model) => model.id === input.modelId);
@@ -50,17 +66,24 @@ function findPartByNumber(parts: PartRow[], query: string): PartRow | undefined 
   );
   if (direct) return direct;
 
-  // Tolerate report-style suffixes/prefixes, e.g. "DELL X77XY9A" -> "X77XY".
-  return parts.find((part) =>
-    [part.partNumber, ...part.altPartNumbers].some((number) => {
+  // Accept a known part number as a report token with an optional "DELL"/"DPN"
+  // prefix and a short printed suffix, e.g. "DELL X77XY9A" -> "X77XY".
+  // Do not accept a partial part number such as "X77X".
+  for (const part of parts) {
+    for (const number of [part.partNumber, ...part.altPartNumbers]) {
       const normalizedNumber = normalize(number);
-      return (
-        normalizedNumber.length >= 4 &&
-        (normalizedQuery.includes(normalizedNumber) ||
-          normalizedNumber.includes(normalizedQuery))
-      );
-    })
-  );
+      if (normalizedNumber.length < 4) continue;
+      const index = normalizedQuery.indexOf(normalizedNumber);
+      if (index === -1) continue;
+      const prefix = normalizedQuery.slice(0, index);
+      const suffix = normalizedQuery.slice(index + normalizedNumber.length);
+      if (!["", "dell", "dpn"].includes(prefix)) continue;
+      if (suffix.length > 3) continue;
+      return part;
+    }
+  }
+
+  return undefined;
 }
 
 function healthPercent(
@@ -166,6 +189,15 @@ export function matchCatalog(
   if (installed.status !== "verified") {
     return {
       ...noMatch(["installed_part_unverified"], model),
+      installedPart: installed,
+      healthPct: percent,
+      healthNote: note
+    };
+  }
+
+  if (hasCapacityConflict(input.designCapacityMwh, installed.capacityWh)) {
+    return {
+      ...noMatch(["capacity_conflict"], model),
       installedPart: installed,
       healthPct: percent,
       healthNote: note

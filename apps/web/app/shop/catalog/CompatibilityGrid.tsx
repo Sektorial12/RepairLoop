@@ -201,7 +201,6 @@ export function CompatibilityGrid({ rows }: { rows: MatrixRow[] }) {
             onRowClicked={(event: RowClickedEvent<MatrixRow>) =>
               setSelected(event.data ?? null)
             }
-            suppressCellFocus
             overlayNoRowsTemplate="<span>No compatibility rows match these filters.</span>"
           />
         </div>

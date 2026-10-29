@@ -239,6 +239,10 @@ test("shop intake drafts a verified quote and adds it after approval", async ({
           sellerUrl:
             "https://www.parts-people.com/index.php?action=search&search_query=R8D7N",
           fitmentNote: "Verified 51Wh 3-cell 11.4V option.",
+          availability: "reported_in_stock",
+          availabilityCheckedAt: "2026-10-28T12:00:00.000Z",
+          availabilityNote: "Seller reported in stock for the test fixture.",
+          availabilitySourceUrl: null,
           verifiedAt: "2026-10-26T12:00:00.000Z"
         },
         sellerUrl:

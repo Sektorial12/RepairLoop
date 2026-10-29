@@ -97,6 +97,30 @@ describe("catalog matcher", () => {
     expect(result.reasons).toContain("unsupported_model");
   });
 
+  it("rejects a design capacity that conflicts with the installed part", () => {
+    const result = matchCatalog(catalogData, {
+      modelId: "dell-latitude-5400",
+      installedPartNumber: "X77XY",
+      designCapacityMwh: 42000,
+      fullChargeCapacityMwh: 40000
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("capacity_conflict");
+  });
+
+  it("does not accept a partial part number", () => {
+    const result = matchCatalog(catalogData, {
+      modelId: "dell-latitude-5400",
+      installedPartNumber: "X77X",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("unknown_installed_part");
+  });
+
   it("refuses an ambiguous model query instead of selecting the first model", () => {
     const result = matchCatalog(catalogData, {
       modelQuery: "Dell",

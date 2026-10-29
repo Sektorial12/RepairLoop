@@ -219,9 +219,11 @@ export default function ShopPage() {
 
   const addToQueue = async () => {
     if (!draft?.quote || !draft.match.model) return;
-    if (draft.quote.availability === "reported_out_of_stock") {
+    if (draft.quote.availability !== "reported_in_stock") {
       setError(
-        "The named seller reports this part out of stock. Fitment is verified; do not promise a purchasable quote."
+        draft.quote.availability === "reported_out_of_stock"
+          ? "The named seller reports this part out of stock. Fitment is verified; do not promise a purchasable quote."
+          : "Seller availability is not verified for this part. Check the seller before promising a purchasable quote."
       );
       return;
     }
@@ -534,8 +536,7 @@ export default function ShopPage() {
                           disabled={
                             added ||
                             !reviewConfirmed ||
-                            draft.quote.availability ===
-                              "reported_out_of_stock"
+                            draft.quote.availability !== "reported_in_stock"
                           }
                         >
                           {added
@@ -543,7 +544,9 @@ export default function ShopPage() {
                             : draft.quote.availability ===
                                 "reported_out_of_stock"
                               ? "Seller reports out of stock"
-                              : "Confirm review and add to queue"}
+                              : draft.quote.availability === "unknown"
+                                ? "Seller stock not verified"
+                                : "Confirm review and add to queue"}
                         </button>
                       </div>
                     </article>

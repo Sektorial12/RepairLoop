@@ -285,7 +285,7 @@ export function PayPalCheckout({
             const receipt = (await response.json()) as Receipt;
             onCaptured(receipt);
           } catch (caught) {
-            forceNewOrderRef.current = true;
+            forceNewOrderRef.current = false;
             attemptIdRef.current = globalThis.crypto.randomUUID();
             setStatus("ready");
             setError(
@@ -306,7 +306,7 @@ export function PayPalCheckout({
           setError("Payment cancelled. No charge.");
         },
         onError: () => {
-          forceNewOrderRef.current = true;
+          forceNewOrderRef.current = false;
           attemptIdRef.current = globalThis.crypto.randomUUID();
           setStatus("ready");
           setError(
