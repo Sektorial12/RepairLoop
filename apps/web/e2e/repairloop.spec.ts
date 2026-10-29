@@ -307,7 +307,7 @@ test("shop intake drafts a verified quote and adds it after approval", async ({
   await page
     .getByLabel("Customer request")
     .fill("Dell Latitude 5410, battery label R8D7N, dies after 20 minutes.");
-  await page.getByLabel(/This request is sent to Gemini/).check();
+  await page.locator("#shop-ai-consent").check();
   await page.getByRole("button", { name: "Draft verified quote" }).click();
 
   await expect(page.getByText("R8D7N").first()).toBeVisible();

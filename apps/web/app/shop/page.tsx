@@ -359,6 +359,7 @@ export default function ShopPage() {
               </label>
               <label className="consent-row">
                 <input
+                  id="shop-ai-consent"
                   type="checkbox"
                   checked={aiConsent}
                   onChange={(event) => setAiConsent(event.target.checked)}
