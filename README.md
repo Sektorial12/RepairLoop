@@ -8,7 +8,7 @@ RepairLoop turns a laptop battery report or label photo into a source-linked rep
 
 **Status:** Working prototype. The verified/no-match/safety battery check flow, live Gemini extraction, and PayPal Sandbox checkout/capture are implemented. No fake paid state is shown.
 
-**Coverage:** 17 models with source-linked aliases and fitment rows across Dell Latitude/Precision/Inspiron and the Lenovo ThinkPad T480s, covering the shared Dell 42/51/68Wh families and the T480s 57Wh family. Unsupported or ambiguous models are refused and can be requested through the public issue tracker. `P92G` and bare `7590` are intentionally not aliases.
+**Coverage:** 17 models with source-linked aliases and fitment rows across Dell Latitude/Precision/Inspiron and the Lenovo ThinkPad T480s, covering the shared Dell 42/51/68Wh families and the T480s 57Wh family. Unsupported or ambiguous models are refused and can be requested through the public issue tracker. `P92G` and bare `7590`/`7591`/`7791` are intentionally not aliases.
 
 **Shop mode:** `/shop` provides an AI-assisted intake pipeline (customer text → extracted facts → deterministic catalog match → human-reviewed quote) with a seller handoff and a shareable customer checkout link tied to the existing PayPal Sandbox flow. `/shop/catalog` adds an AG Grid source-linked compatibility matrix for shop reference. AI never chooses fitment or captures payment.
 
@@ -18,7 +18,7 @@ Dell lists three battery capacities for the Latitude 5400 — 42Wh, 51Wh, and 68
 
 - **Installed reference:** Dell Latitude 5400, 68Wh 4-cell 7.6V, `X77XY` (part of the `4GVMP` family)
 - **Exact replacement family:** `4GVMP`, `X77XY`, `RF7WM`, `C5GV2`, `9JRYT`, `MCV1G`, `5H46R`
-- **Lower-capacity options:** 51Wh `R8D7N` family (fitment-verified; seller reported out of stock on 28 Oct 2026); 42Wh `1V1XF` family
+- **Lower-capacity options:** 51Wh `R8D7N` family (fitment-verified; seller reported out of stock on 28 Oct 2026; source capacity conflict 51Wh vs iFixit 48.5Wh — verify the label); 42Wh `1V1XF` family
 - **Explicitly unverified:** 68Wh **15.2V** `3HWPP` — same capacity, different voltage; never offered at checkout
 - **No match:** unsupported models, unknown parts, conflicting signals, or a damaged-battery safety stop
 
@@ -94,11 +94,11 @@ curl -sS http://127.0.0.1:3002/api/match \
 ## Verify
 
 ```bash
-npm test                 # 35 API, catalog, webhook, token, and PayPal tests
+npm test                 # 40 API, catalog, safety, webhook, token, and PayPal tests
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run test:e2e         # 17 browser tests: desktop + mobile Chromium; WebKit mobile in CI
+npm run test:e2e         # 18 browser tests: desktop + mobile Chromium; WebKit mobile in CI
 ```
 
 The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the deployed API.

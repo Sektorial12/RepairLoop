@@ -11,9 +11,9 @@ RepairLoop uses a deliberately small, source-linked catalog. It does **not** cla
 | Latitude 5400 supports 42Wh 3-cell 11.4V, 51Wh 3-cell 11.4V, and 68Wh 4-cell 7.6V batteries | [Dell Latitude 5400 Setup and Specifications](https://www.dell.com/support/manuals/en-us/latitude-14-5400-laptop/latitude_5400_setupspecs/battery) | Capacity/voltage model | Verified |
 | Battery removal: disconnect cable, loosen captive screw, lift/slide | [Dell Latitude 5400 Service Manual](https://www.dell.com/support/manuals/en-us/latitude-14-5400-laptop/latitude_5400_servicemanual/removing-the-battery) | Repair guide link | Verified |
 | Dell parts lookup requires exact system configuration; search by Service Tag or part number | [Dell Parts](https://www.dell.com/en-us/shop/dell-parts/partsforyourdell) | Problem framing | Verified |
-| Dell 3-cell 42Wh replacement battery is compatible with Latitude 5400/5500/Precision 3540 | [Dell CPX-7T0D3](https://www.dell.com/en-us/shop/dell-3-cell-42-wh-lithium-ion-replacement-battery-for-select-laptops/apd/cpx-7t0d3/pc-accessories) | 42Wh compatibility | Verified |
+| Latitude 5400 specification: 42Wh 3-cell 11.4V battery; the former Dell shop URL redirects to a generic accessories page and is not used | [Dell Latitude 5400 Setup and Specifications](https://www.dell.com/support/manuals/en-us/latitude-14-5400-laptop/latitude_5400_setupspecs/battery) | 42Wh compatibility | Verified; source URL replaced |
 | Dell OEM 4-cell 68Wh 7.6V battery for Latitude 5400/5500/Precision 3540, Inspiron 7590/7591/7791 2-in-1, and Latitude 5400 Chromebook; DP/N includes `RF7WM`, `C5GV2`, `X77XY`, `9JRYT`, `MCV1G`, `5H46R` | [Parts-People 4GVMP](https://www.parts-people.com/index.php?action=item&id=30351) | 68Wh family | Verified |
-| Dell OEM 3-cell 51Wh battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; part `R8D7N` | [Parts-People R8D7N](https://www.parts-people.com/index.php?action=item&id=30356) | 51Wh family | Fitment verified; seller reported out of stock 28 Oct 2026 |
+| Dell OEM 3-cell battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; part `R8D7N` | [Parts-People R8D7N](https://www.parts-people.com/index.php?action=item&id=30356) | 51Wh family | Fitment verified; seller reported out of stock 28 Oct 2026; capacity conflict: Parts-People/Dell 51Wh vs iFixit 48.5Wh |
 | Dell OEM 3-cell 42Wh battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; part `1V1XF` | [Parts-People 1V1XF](https://www.parts-people.com/index.php?action=item&id=30353) | 42Wh family | Verified |
 | Lenovo ThinkPad T480s (20L7/20L8) internal 3-cell 57Wh battery; FRU `01AV478`/`01AV479`/`01AV480`; 11.58V | [Lenovo T480s FRU BOM](https://download.lenovo.com/parts/ThinkPad/t480s_frubom_mt_20l7_20l8_20180226.pdf), [iFixit 01AV478](https://www.ifixit.com/products/lenovo-thinkpad-t480s-battery) | T480s 57Wh family | Verified |
 | Latitude 5400 battery guide: 10–40 minutes, moderate; parts `1V1XF`, `R8D7N`, `4GVMP`, `3HWPP` | [iFixit guide](https://www.ifixit.com/Guide/Dell+Latitude+5400+Battery+Replacement/201472), [iFixit parts](https://www.ifixit.com/Parts/Dell_Latitude_5400/Batteries) | Repair steps; cross-check | Verified |
@@ -51,8 +51,8 @@ From a redacted demo battery report:
 
 - Every model ID maps to a source in `modelSourceIds` in `apps/api/src/catalog/data.ts`; the catalog API returns that source with the model.
 - `P92G` is **not** a Latitude 5400 alias. Dell’s Latitude 5400 manual identifies `P98G`/`P98G001`; the iFixit guide’s `P92G` wording is not used for fitment.
-- Bare `7590` is **not** an alias. Only the explicitly sourced `Inspiron 7590 2-in-1` family is supported.
-- `catalog:check` rejects alias collisions, `P92G`, and bare `7590`, and requires a source for every model.
+- Bare `7590`, `7591`, and `7791` are **not** aliases. Only the explicitly sourced `Inspiron ... 2-in-1` families are supported.
+- `catalog:check` rejects alias collisions, `P92G`, bare `7590`, `7591`, and `7791`, and requires a source for every model.
 
 ## Verification workflow
 

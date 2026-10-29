@@ -53,7 +53,9 @@ export default function PrivacyPage() {
         Sandbox. The app is hosted on Render and Vercel, with a Neon PostgreSQL
         database. Do not upload serial numbers, service tags, names, addresses,
         or other personal data. Crop and redact before uploading. The consumer
-        and shop forms require AI consent before sending content.
+        and shop forms require AI consent before sending content. Case details
+        used for a source-cited explanation are sent to Gemini only after that
+        consent.
       </p>
 
       <h2>Retention and contact</h2>

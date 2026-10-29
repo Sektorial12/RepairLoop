@@ -16,7 +16,7 @@ const partIds = new Set(catalogData.parts.map((part) => part.id));
 const aliasOwners = new Map<string, string>();
 const normalizeAlias = (value: string): string =>
   value.toLowerCase().replace(/[^a-z0-9]/g, "");
-const forbiddenAliases = new Set(["p92g", "7590"]);
+const forbiddenAliases = new Set(["p92g", "7590", "7591", "7791"]);
 
 for (const source of catalogData.sources) {
   if (!source.publisher.trim()) {

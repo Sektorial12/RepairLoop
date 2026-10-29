@@ -78,6 +78,32 @@ test("shop matrix filters, shows stock, and prefills a quote", async ({ page }) 
   );
 });
 
+test("mobile pages do not overflow the viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  await mockStatus(page);
+  await page.goto("/");
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth
+    )
+  ).toBeLessThanOrEqual(1);
+
+  await mockCatalog(page);
+  for (const path of ["/catalog", "/shop", "/shop/catalog"]) {
+    await page.goto(path);
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth
+      )
+    ).toBeLessThanOrEqual(1);
+  }
+});
+
 test("receipt survives a refresh and shows the verified capture", async ({
   page
 }) => {

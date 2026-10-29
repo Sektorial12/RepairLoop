@@ -31,10 +31,10 @@ const sources: CatalogData["sources"] = [
   {
     id: "src-dell-42wh",
     publisher: "Dell",
-    url: "https://www.dell.com/en-us/shop/dell-3-cell-42-wh-lithium-ion-replacement-battery-for-select-laptops/apd/cpx-7t0d3/pc-accessories",
+    url: "https://www.dell.com/support/manuals/en-us/latitude-14-5400-laptop/latitude_5400_setupspecs/battery",
     accessedAt: ACCESSED_AT,
-    licenseTerms: "Public product page; facts used with attribution.",
-    notes: "Dell 3-cell 42Wh replacement battery, CPX-7T0D3, compatible with Latitude 5400/5500/Precision 3540."
+    licenseTerms: "Public manufacturer documentation; facts used with attribution.",
+    notes: "Dell Latitude 5400 spec: 42Wh 3-cell 11.4V battery. The former Dell shop URL redirected to a generic accessories page, so it is not used as the source link."
   },
   {
     id: "src-parts-people-1v1xf",
@@ -66,7 +66,7 @@ const sources: CatalogData["sources"] = [
     url: "https://www.parts-people.com/index.php?action=item&id=30356",
     accessedAt: ACCESSED_AT,
     licenseTerms: "Public product listing; facts used; no images copied.",
-    notes: "Dell OEM 3-cell 51Wh battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; part R8D7N."
+    notes: "Dell OEM 3-cell battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; part R8D7N. Source conflict: Parts-People/Dell list 51Wh; iFixit lists 48.5Wh. Verify the label before treating capacity as exact."
   },
   {
     id: "src-ifixit-guide",
@@ -236,7 +236,7 @@ const models: CatalogData["models"] = [
     brand: "Dell",
     family: "Inspiron",
     model: "Inspiron 7591 2-in-1",
-    aliases: ["Inspiron 7591 2-in-1", "Inspiron 15 7591 2-in-1", "Dell Inspiron 7591", "7591"],
+    aliases: ["Inspiron 7591 2-in-1", "Inspiron 15 7591 2-in-1"],
     regulatoryModel: null
   },
   {
@@ -244,7 +244,7 @@ const models: CatalogData["models"] = [
     brand: "Dell",
     family: "Inspiron",
     model: "Inspiron 7791 2-in-1",
-    aliases: ["Inspiron 7791 2-in-1", "Inspiron 17 7791 2-in-1", "Dell Inspiron 7791", "7791"],
+    aliases: ["Inspiron 7791 2-in-1", "Inspiron 17 7791 2-in-1"],
     regulatoryModel: null
   },
   {
@@ -325,7 +325,7 @@ const parts: CatalogData["parts"] = [
     sourceId: "src-parts-people-r8d7n",
     verifiedAt: VERIFIED_AT,
     notes:
-      "Lower-capacity 51Wh 3-cell 11.4V option. It is not the exact original for a 68Wh configuration; show it only as a lower-capacity alternative."
+      "Lower-capacity 3-cell 11.4V option; Parts-People/Dell list 51Wh while iFixit lists 48.5Wh. It is not the exact original for a 68Wh configuration; disclose the capacity conflict and verify the label."
   },
   {
     id: "part-3hwpp-68wh-15v",

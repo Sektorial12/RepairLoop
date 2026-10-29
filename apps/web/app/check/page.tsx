@@ -124,7 +124,6 @@ type LabelExtraction = {
   brand: string | null;
   model: string | null;
   regulatoryModel: string | null;
-  serialPrefix: string | null;
   partNumber: string | null;
   capacityWh: number | null;
   voltage: number | null;
@@ -699,6 +698,12 @@ export default function CheckPage() {
   };
 
   const handleExplain = async (option: MatchOption) => {
+    if (!aiConsent) {
+      setExplanationError(
+        "Accept the AI consent in Step 2 before using Explain with AI."
+      );
+      return;
+    }
     setExplanationLoading(true);
     setExplanationError(null);
     setExplanation(null);
@@ -1207,9 +1212,9 @@ export default function CheckPage() {
                   onChange={(event) => setAiConsent(event.target.checked)}
                 />
                 <span>
-                  Images and free-text symptom descriptions are sent to Gemini
-                  for extraction. The free tier may use content to improve
-                  Google products. Crop to the battery
+                  Images, free-text symptom descriptions, and the case details
+                  used for a source-cited explanation are sent to Gemini. The
+                  free tier may use content to improve Google products. Crop to the battery
                   section and redact serial numbers, service tags, and personal
                   data before uploading.
                 </span>
@@ -1581,7 +1586,7 @@ export default function CheckPage() {
                         className="button ghost"
                         type="button"
                         onClick={() => void handleExplain(result.exact!)}
-                        disabled={explanationLoading}
+                        disabled={explanationLoading || !aiConsent}
                       >
                         {explanationLoading
                           ? "Explaining…"
@@ -1617,6 +1622,12 @@ export default function CheckPage() {
                         the cited source; the URL is validated, not every wording claim.
                       </p>
                     )}
+                    {!aiConsent ? (
+                      <p className="hint">
+                        Accept the AI consent in Step 2 to use the source-cited
+                        explanation.
+                      </p>
+                    ) : null}
                     {explanationError ? (
                       <div className="notice notice-warning">
                         {explanationError} The catalog evidence above remains

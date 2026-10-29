@@ -10,6 +10,7 @@ import {
 } from "../ai/client.js";
 import { loadCatalog } from "../catalog/load.js";
 import { matchCatalog } from "../catalog/matcher.js";
+import { addDamagedBatteryTag } from "../catalog/safety.js";
 import { db } from "../db/client.js";
 import { buildSymptomPrompt } from "../ai/prompts.js";
 import {
@@ -301,7 +302,10 @@ ${JSON.stringify(parsed.data.text)}`,
           designCapacityMwh: extraction.designCapacityMwh ?? undefined,
           fullChargeCapacityMwh:
             extraction.fullChargeCapacityMwh ?? undefined,
-          symptomTags: extraction.symptomTags
+          symptomTags: addDamagedBatteryTag(
+            extraction.symptomTags,
+            extraction.safetyFlag
+          )
         });
 
         const exact = result.exact;

@@ -60,21 +60,31 @@ code {
 
 .nav {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   padding: 1.25rem 0;
   border-bottom: 1px solid rgba(216, 210, 196, 0.7);
 }
 
 .nav-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  justify-content: flex-end;
+  gap: 0.6rem 1rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   color: var(--ink);
   font-size: 0.8rem;
+  line-height: 1.2;
   font-weight: 750;
   text-decoration: none;
 }
@@ -479,6 +489,9 @@ h3 {
 }
 
 .footer-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   color: var(--teal-dark);
   font-weight: 700;
   text-decoration: underline;
@@ -549,6 +562,11 @@ h3 {
   .nav {
     align-items: flex-start;
     gap: 0.75rem;
+  }
+
+  .nav-actions {
+    justify-content: flex-start;
+    gap: 0.5rem 0.75rem;
   }
 
   .badge {

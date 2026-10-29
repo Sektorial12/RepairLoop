@@ -11,7 +11,7 @@
 1. **Battery-report extraction:** read a redacted screenshot and return structured fields:
    - model, part number, design capacity (mWh), full charge capacity (mWh), health %, cycle count, confidence, warnings
 2. **Label extraction:** read a model/battery label photo and return:
-   - brand, model, regulatory model, serial prefix, part number, capacity, voltage, confidence, warnings
+   - brand, model, regulatory model, part number, capacity, voltage, confidence, warnings; serials are not requested or stored
 3. **Symptom structuring:** map free text to controlled symptom tags and one optional clarifying question
 4. **Grounded explanation:** explain why a catalog-verified part fits, using only retrieved evidence, with a citation
 5. **Shop intake:** extract explicit device/part/symptom facts from a customer message, then let the deterministic catalog draft a human-approved quote

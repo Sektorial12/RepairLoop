@@ -24,6 +24,8 @@ describe("catalog trust metadata", () => {
     );
     expect(normalized).not.toContain("p92g");
     expect(normalized).not.toContain("7590");
+    expect(normalized).not.toContain("7591");
+    expect(normalized).not.toContain("7791");
   });
 
   it("marks R8D7N fitment-verified but seller-reported out of stock", () => {

@@ -61,6 +61,30 @@ describe("catalog matcher", () => {
     expect(result.reasons).toContain("unsupported_model");
   });
 
+  it("does not treat bare 7591 as the Inspiron 7591 2-in-1", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "7591",
+      installedPartNumber: "X77XY",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("unsupported_model");
+  });
+
+  it("does not treat bare 7791 as the Inspiron 7791 2-in-1", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "7791",
+      installedPartNumber: "X77XY",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("unsupported_model");
+  });
+
   it("does not map a non-2-in-1 Inspiron 7590 to the 2-in-1 row", () => {
     const result = matchCatalog(catalogData, {
       modelQuery: "Dell Inspiron 7590",

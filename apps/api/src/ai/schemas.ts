@@ -63,7 +63,6 @@ export const labelJsonSchema: Schema = {
     brand: { type: Type.STRING, nullable: true },
     model: { type: Type.STRING, nullable: true },
     regulatoryModel: { type: Type.STRING, nullable: true },
-    serialPrefix: { type: Type.STRING, nullable: true },
     partNumber: { type: Type.STRING, nullable: true },
     capacityWh: { type: Type.NUMBER, nullable: true },
     voltage: { type: Type.NUMBER, nullable: true },
@@ -74,7 +73,6 @@ export const labelJsonSchema: Schema = {
     "brand",
     "model",
     "regulatoryModel",
-    "serialPrefix",
     "partNumber",
     "capacityWh",
     "voltage",
@@ -145,7 +143,6 @@ export const labelExtractionSchema = z.object({
   brand: z.string().nullable(),
   model: z.string().nullable(),
   regulatoryModel: z.string().nullable(),
-  serialPrefix: z.string().nullable(),
   partNumber: z.string().nullable(),
   capacityWh: z.number().positive().nullable(),
   voltage: z.number().positive().nullable(),
@@ -191,7 +188,6 @@ export const LABEL_PROMPT = `You extract model and part information from a lapto
 Rules:
 - Transcribe only visible text. Never invent characters.
 - Use null when a field is missing or unreadable.
-- serialPrefix: the first three serial characters if visible; otherwise null.
 - partNumber: the Dell part number if visible.
 - Do not infer compatibility, price, or a replacement part.
 - confidence: 0-1.

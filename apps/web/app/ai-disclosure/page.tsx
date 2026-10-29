@@ -46,8 +46,9 @@ export default function AiDisclosurePage() {
 
       <h2>Privacy and limits</h2>
       <p>
-        Images and free-text symptom/shop text are sent to Gemini after the
-        user checks an AI-consent box; the free tier may use submitted content
+        Images, free-text symptom/shop text, and the case details used for a
+        source-cited explanation are sent to Gemini after the user checks an
+        AI-consent box; the free tier may use submitted content
         to improve Google products. Images are re-encoded server-side to strip
         EXIF/GPS/device metadata before the Gemini request, but the browser
         preview can retain the local file. Crop and redact serials, service
