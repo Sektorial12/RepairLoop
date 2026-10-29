@@ -314,6 +314,18 @@ test("shop intake drafts a verified quote and adds it after approval", async ({
   await expect(page.getByRole("link", { name: /Buy at seller/ })).toBeVisible();
 
   await page.locator("#shop-review-confirmed").check();
+  await expect(page.locator("#shop-review-confirmed")).toBeChecked();
+
+  await page
+    .getByLabel("Installed part correction (optional)")
+    .fill("R8D7N ");
+  await expect(page.locator("#shop-review-confirmed")).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Confirm review and add to queue" })
+  ).toBeDisabled();
+
+  await page.getByRole("button", { name: "Re-check catalog" }).click();
+  await page.locator("#shop-review-confirmed").check();
 
   await page
     .getByRole("button", { name: "Confirm review and add to queue" })

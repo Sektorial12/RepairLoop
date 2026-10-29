@@ -106,6 +106,7 @@ export default function ShopPage() {
   const [reviewModel, setReviewModel] = useState("");
   const [reviewPart, setReviewPart] = useState("");
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const [draftDirty, setDraftDirty] = useState(false);
   const [checkoutLink, setCheckoutLink] = useState<string | null>(null);
   const [aiConsent, setAiConsent] = useState(false);
 
@@ -141,6 +142,7 @@ export default function ShopPage() {
     setDraft(null);
     setAdded(false);
     setReviewConfirmed(false);
+    setDraftDirty(false);
     setCheckoutLink(null);
 
     try {
@@ -164,6 +166,7 @@ export default function ShopPage() {
       setDraft(next);
       setReviewModel(next.extraction.modelQuery ?? "");
       setReviewPart(next.extraction.installedPartNumber ?? "");
+      setDraftDirty(false);
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Could not draft the quote."
@@ -208,6 +211,7 @@ export default function ShopPage() {
           (body as ShopIntakeDraft).extraction.installedPartNumber ??
           ""
       );
+      setDraftDirty(false);
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Could not re-check the part."
@@ -219,6 +223,12 @@ export default function ShopPage() {
 
   const addToQueue = async () => {
     if (!draft?.quote || !draft.match.model) return;
+    if (draftDirty) {
+      setError(
+        "The model or part correction changed. Re-check the catalog before approving this quote."
+      );
+      return;
+    }
     if (draft.quote.availability !== "reported_in_stock") {
       setError(
         draft.quote.availability === "reported_out_of_stock"
@@ -423,7 +433,13 @@ export default function ShopPage() {
                       <span>Model correction (optional)</span>
                       <input
                         value={reviewModel}
-                        onChange={(event) => setReviewModel(event.target.value)}
+                        onChange={(event) => {
+                          setReviewModel(event.target.value);
+                          setReviewConfirmed(false);
+                          setDraftDirty(true);
+                          setAdded(false);
+                          setCheckoutLink(null);
+                        }}
                         placeholder="e.g. Latitude 5410"
                         autoComplete="off"
                       />
@@ -432,7 +448,13 @@ export default function ShopPage() {
                       <span>Installed part correction (optional)</span>
                       <input
                         value={reviewPart}
-                        onChange={(event) => setReviewPart(event.target.value)}
+                        onChange={(event) => {
+                          setReviewPart(event.target.value);
+                          setReviewConfirmed(false);
+                          setDraftDirty(true);
+                          setAdded(false);
+                          setCheckoutLink(null);
+                        }}
                         placeholder="e.g. R8D7N"
                         autoComplete="off"
                       />
@@ -448,11 +470,18 @@ export default function ShopPage() {
                       {drafting ? "Re-checking…" : "Re-check catalog"}
                     </button>
                   </div>
+                  {draftDirty ? (
+                    <div className="notice notice-warning">
+                      <strong>Corrections changed.</strong> Re-check the catalog
+                      before approving this quote.
+                    </div>
+                  ) : null}
                   <label className="consent-row">
                     <input
                       id="shop-review-confirmed"
                       type="checkbox"
                       checked={reviewConfirmed}
+                      disabled={draftDirty}
                       onChange={(event) =>
                         setReviewConfirmed(event.target.checked)
                       }
@@ -536,6 +565,7 @@ export default function ShopPage() {
                           disabled={
                             added ||
                             !reviewConfirmed ||
+                            draftDirty ||
                             draft.quote.availability !== "reported_in_stock"
                           }
                         >

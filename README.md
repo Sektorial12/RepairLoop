@@ -39,8 +39,10 @@ Run these commands from the repository root.
 ```bash
 npm install
 cp .env.example .env
+cp apps/web/.env.example apps/web/.env.local
 # Fill DATABASE_URL, GEMINI_API_KEY, GEMINI_MODEL, PayPal Sandbox values
 # and a random RECEIPT_TOKEN_SECRET (16+ chars) in .env
+# apps/web/.env.local defaults the web app to the local API at 127.0.0.1:3002.
 npm run db:generate
 npm run db:push
 npm run db:seed
@@ -56,7 +58,7 @@ npm run dev:web   # http://localhost:3000
 
 Once both are running, open the guided flow at `http://localhost:3000/check` or auto-run the demo at `http://localhost:3000/check?demo=1`. Browse the source-linked catalog at `http://localhost:3000/catalog`; completed sandbox orders are shareable at `/receipt/[orderId]`.
 
-The API loads the repository-root `.env` first, then `apps/api/.env`. No secrets belong in either tracked file.
+The API loads the repository-root `.env` first, then `apps/api/.env`. The web app loads `apps/web/.env.local`; its example defaults to the local API. No secrets belong in tracked files.
 
 ## Judge quick start
 
@@ -95,7 +97,7 @@ curl -sS http://127.0.0.1:3002/api/match \
 ## Verify
 
 ```bash
-npm test                 # 45 API, catalog, safety, webhook, token, and PayPal tests
+npm test                 # 46 API, catalog, safety, webhook, token, and PayPal tests
 npm run typecheck
 npm run build
 npx playwright install chromium
