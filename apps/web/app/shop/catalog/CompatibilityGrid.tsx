@@ -88,16 +88,6 @@ const columns: ColDef<MatrixRow>[] = [
     width: 120,
     cellClass: "matrix-mono"
   },
-  {
-    field: "sourcePublisher",
-    headerName: "Source",
-    minWidth: 130
-  },
-  {
-    field: "verifiedLabel",
-    headerName: "Verified",
-    width: 115
-  }
 ];
 
 export function CompatibilityGrid({ rows }: { rows: MatrixRow[] }) {
@@ -107,22 +97,31 @@ export function CompatibilityGrid({ rows }: { rows: MatrixRow[] }) {
   const [selected, setSelected] = useState<MatrixRow | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const filteredRows = useMemo(
-    () =>
-      rows.filter((row) => {
-        if (statusFilter !== "all" && row.fitmentStatus !== statusFilter) {
-          return false;
-        }
-        if (
-          availabilityFilter !== "all" &&
-          row.availability !== availabilityFilter
-        ) {
-          return false;
-        }
-        return true;
-      }),
-    [rows, statusFilter, availabilityFilter]
-  );
+  const filteredRows = useMemo(() => {
+    const search = quickFilter.trim().toLowerCase();
+    return rows.filter((row) => {
+      if (statusFilter !== "all" && row.fitmentStatus !== statusFilter) {
+        return false;
+      }
+      if (
+        availabilityFilter !== "all" &&
+        row.availability !== availabilityFilter
+      ) {
+        return false;
+      }
+      if (!search) return true;
+      return [
+        row.modelLabel,
+        row.partNumber,
+        row.capacityWh,
+        row.voltageLabel,
+        row.fitmentLabel,
+        row.availabilityLabel,
+        row.seller,
+        row.sourcePublisher ?? ""
+      ].some((value) => String(value).toLowerCase().includes(search));
+    });
+  }, [rows, quickFilter, statusFilter, availabilityFilter]);
 
   const copyQuote = async () => {
     if (!selected) return;
@@ -191,7 +190,6 @@ export function CompatibilityGrid({ rows }: { rows: MatrixRow[] }) {
               flex: 1,
               minWidth: 95
             }}
-            quickFilterText={quickFilter}
             pagination
             paginationPageSize={20}
             paginationPageSizeSelector={[10, 20, 50]}

@@ -1442,7 +1442,7 @@ h3 {
 
 .matrix-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
 }
@@ -1564,7 +1564,7 @@ h3 {
 
 .matrix-detail-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.7rem;
   margin: 0.85rem 0;
 }
@@ -1606,16 +1606,12 @@ h3 {
 }
 
 @media (max-width: 980px) {
-  .matrix-layout {
-    grid-template-columns: 1fr;
-  }
-
   .matrix-grid {
     height: 500px;
   }
 
-  .matrix-detail {
-    order: 2;
+  .matrix-detail-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
