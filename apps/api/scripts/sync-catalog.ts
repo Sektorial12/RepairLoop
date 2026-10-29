@@ -1,7 +1,12 @@
 import { eq } from "drizzle-orm";
 import { catalogData } from "../src/catalog/data.js";
 import { closeDb, db } from "../src/db/client.js";
-import { compatibility, parts, sources } from "../src/db/schema.js";
+import {
+  compatibility,
+  deviceModels,
+  parts,
+  sources
+} from "../src/db/schema.js";
 
 if (!db) {
   console.error("DATABASE_URL is required to sync the catalog.");
@@ -22,6 +27,19 @@ try {
         notes: source.notes ?? null
       })
       .where(eq(sources.id, source.id));
+  }
+
+  for (const model of catalogData.models) {
+    await database
+      .update(deviceModels)
+      .set({
+        brand: model.brand,
+        family: model.family,
+        model: model.model,
+        aliases: model.aliases,
+        regulatoryModel: model.regulatoryModel ?? null
+      })
+      .where(eq(deviceModels.id, model.id));
   }
 
   for (const part of catalogData.parts) {
@@ -62,7 +80,7 @@ try {
   }
 
   console.log(
-    `Catalog sync passed: ${catalogData.sources.length} sources, ${catalogData.parts.length} parts, ${catalogData.compatibility.length} compatibility rows.`
+    `Catalog sync passed: ${catalogData.models.length} models, ${catalogData.sources.length} sources, ${catalogData.parts.length} parts, ${catalogData.compatibility.length} compatibility rows.`
   );
 } catch (error) {
   console.error("Catalog sync failed:", error);

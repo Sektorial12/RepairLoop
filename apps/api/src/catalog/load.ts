@@ -6,7 +6,7 @@ import {
   sources,
   symptoms
 } from "../db/schema.js";
-import { modelSourceIds, partAvailability } from "./data.js";
+import { catalogData, modelSourceIds, partAvailability } from "./data.js";
 import type { CatalogData } from "./types.js";
 
 export async function loadCatalog(): Promise<CatalogData> {
@@ -23,11 +23,22 @@ export async function loadCatalog(): Promise<CatalogData> {
       db.select().from(sources)
     ]);
 
+  const canonicalModels = new Map(
+    catalogData.models.map((model) => [model.id, model])
+  );
+
   return {
-    models: models.map((model) => ({
-      ...model,
-      sourceId: modelSourceIds[model.id] ?? null
-    })),
+    models: models.map((model) => {
+      const canonical = canonicalModels.get(model.id);
+      return {
+        ...model,
+        aliases: canonical?.aliases ?? model.aliases,
+        regulatoryModel: canonical
+          ? canonical.regulatoryModel
+          : model.regulatoryModel,
+        sourceId: modelSourceIds[model.id] ?? null
+      };
+    }),
     parts: partRows.map((part) => {
       const availability = partAvailability[part.id];
       return {
