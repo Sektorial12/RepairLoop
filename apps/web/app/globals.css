@@ -1678,3 +1678,73 @@ textarea:focus-visible,
     scroll-behavior: auto !important;
   }
 }
+
+
+.report-panel {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: #fffdf8;
+}
+
+.report-card {
+  margin-top: 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: #ffffff;
+}
+
+.report-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.report-card p {
+  margin: 0.3rem 0;
+  font-size: 0.92rem;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin: 0.8rem 0;
+}
+
+.report-grid > div {
+  min-width: 0;
+}
+
+.report-grid .meta-label {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.report-grid .reason-list {
+  margin: 0.2rem 0 0;
+}
+
+@media (max-width: 700px) {
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .nav,
+  .footer,
+  .report-panel > .option-top,
+  .report-panel > .hint,
+  .report-card .button-row {
+    display: none !important;
+  }
+
+  .report-panel,
+  .report-card {
+    border: 0;
+    padding: 0;
+    background: #fff;
+  }
+}

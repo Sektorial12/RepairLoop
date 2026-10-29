@@ -73,7 +73,7 @@ app.addContentTypeParser(
 app.get("/", async () => ({
   service: "repairloop-api",
   version: serviceVersion,
-  docs: "/health, /live, /ready, /api/status, /api/models, /api/catalog, /api/match, /api/shop/intake, /api/extract/battery-report, /api/extract/label, /api/symptoms/parse, /api/explain, /api/repair-cases, /api/repair-cases/:id, /api/checkout/orders, /api/checkout/orders/:orderId/capture, /api/orders/:orderId, /api/ai/health, /api/paypal/config, /api/webhooks/paypal"
+  docs: "/health, /live, /ready, /api/status, /api/models, /api/catalog, /api/match, /api/shop/intake, /api/extract/battery-report, /api/extract/label, /api/symptoms/parse, /api/explain, /api/report, /api/repair-cases, /api/repair-cases/:id, /api/checkout/orders, /api/checkout/orders/:orderId/capture, /api/orders/:orderId, /api/ai/health, /api/paypal/config, /api/webhooks/paypal"
 }));
 
 await app.register(healthRoutes);

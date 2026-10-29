@@ -6,7 +6,7 @@
 
 RepairLoop turns a laptop battery report or label photo into a source-linked replacement-part decision, then completes the sandbox purchase with PayPal. AI helps with messy input; a curated catalog decides fitment and demo price. Seller stock/availability is a point-in-time report, not a live inventory feed; shipping and fulfillment are not claimed. If RepairLoop cannot verify a match, it says so and disables checkout.
 
-**Status:** Working prototype. The verified/no-match/safety battery check flow, live Gemini extraction, and PayPal Sandbox checkout/capture are implemented. No fake paid state is shown.
+**Status:** Working prototype. The verified/no-match/safety battery check flow, live Gemini extraction and AI repair report, and PayPal Sandbox checkout/capture are implemented. No fake paid state is shown.
 
 **Coverage:** 17 models with source-linked aliases and fitment rows across Dell Latitude/Precision/Inspiron and the Lenovo ThinkPad T480s, covering the shared Dell 42/51/68Wh families and the T480s 57Wh family. Unsupported or ambiguous models are refused and can be requested through the public issue tracker. `P92G` and bare `7590`/`7591`/`7791` are intentionally not aliases.
 
@@ -132,6 +132,7 @@ The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the de
 - Sandbox demo only; this is not a real parts store. There is no general authentication, seller integration, inventory feed, fulfillment, returns, or warranty; receipts are public read-only links and capture retries require a per-order capability token.
 - Prototype privacy, terms, and AI disclosure are linked in the app footer.
 - The shop matrix is a read-only reference; it never creates a case or order. AG Grid Community is used only on `/shop/catalog`.
+- The AI-assisted repair report is labelled; it summarizes confirmed fields plus the optional redacted image and cannot change fitment, price, stock, or payment.
 - GitHub Actions checks the live API readiness, catalog, and hosted pages every 30 minutes; a failing run is visible in GitHub, but there is no Sentry/paging integration.
 
 Dell and Lenovo are trademarks of their respective owners. RepairLoop is not affiliated with or endorsed by either company.

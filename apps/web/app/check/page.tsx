@@ -27,6 +27,38 @@ type Explanation = {
   fallbackReason?: string;
 };
 
+type RepairReport = {
+  title: string;
+  summary: string;
+  health: string;
+  fitment: string;
+  tradeoffs: string;
+  safety: string;
+  nextSteps: string[];
+  uncertainties: string[];
+  confidence: number;
+};
+
+type RepairReportResponse = {
+  report: RepairReport;
+  source: {
+    publisher: string;
+    url: string;
+    evidenceQuote?: string | null;
+    fitmentNote?: string | null;
+  };
+  part: {
+    partNumber: string;
+    name: string;
+    capacityWh: number;
+    voltage: string;
+    cells: number;
+    seller: string;
+    availability: string;
+  };
+  ai: boolean;
+};
+
 type Model = {
   id: string;
   brand: string;
@@ -110,7 +142,7 @@ type Payload = {
 };
 
 type BatteryReportExtraction = {
-  model: string | null;
+  batteryName: string | null;
   partNumber: string | null;
   designCapacityMwh: number | null;
   fullChargeCapacityMwh: number | null;
@@ -281,6 +313,14 @@ export default function CheckPage() {
   const [explanation, setExplanation] = useState<Explanation | null>(null);
   const [explanationLoading, setExplanationLoading] = useState(false);
   const [explanationError, setExplanationError] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<{
+    base64: string;
+    mimeType: "image/png" | "image/jpeg" | "image/webp";
+  } | null>(null);
+  const [repairReport, setRepairReport] =
+    useState<RepairReportResponse | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState<
     null | "report" | "label" | "symptoms"
   >(null);
@@ -418,6 +458,8 @@ export default function CheckPage() {
     setLoading(true);
     setError(null);
     setPaymentNotice(null);
+    setRepairReport(null);
+    setReportError(null);
 
     try {
       const response = await fetch(`${apiBaseUrl}/api/match`, {
@@ -504,6 +546,13 @@ export default function CheckPage() {
 
     try {
       const image = await fileToBase64(file);
+      setUploadedImage({
+        base64: image.base64,
+        mimeType:
+          image.mimeType === "image/jpeg" || image.mimeType === "image/webp"
+            ? image.mimeType
+            : "image/png"
+      });
       const response = await fetch(`${apiBaseUrl}/api/extract/battery-report`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -537,23 +586,10 @@ export default function CheckPage() {
         setFullChargeCapacityMwh(String(extraction.fullChargeCapacityMwh));
       }
 
-      const warnings = [...extraction.warnings];
-      if (extraction.model) {
-        const matchedModel = findModel(extraction.model);
-        if (matchedModel) {
-          setModelId(matchedModel.id);
-        } else {
-          setModelId("");
-          warnings.push(
-            `Model “${extraction.model}” was not recognized; select it manually.`
-          );
-        }
-      }
-
       setExtractionNeedsReview(true);
       setExtractionConfirmed(false);
       setAiConfidence(extraction.confidence);
-      setAiWarnings(warnings);
+      setAiWarnings(extraction.warnings);
       setAiMessage(
         "Report extracted. Check every value before continuing."
       );
@@ -590,6 +626,13 @@ export default function CheckPage() {
 
     try {
       const image = await fileToBase64(file);
+      setUploadedImage({
+        base64: image.base64,
+        mimeType:
+          image.mimeType === "image/jpeg" || image.mimeType === "image/webp"
+            ? image.mimeType
+            : "image/png"
+      });
       const response = await fetch(`${apiBaseUrl}/api/extract/label`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -744,6 +787,58 @@ export default function CheckPage() {
     }
   };
 
+  const handleGenerateReport = async (option: MatchOption) => {
+    if (!aiConsent) {
+      setReportError(
+        "Accept the AI consent in Step 2 before generating the report."
+      );
+      return;
+    }
+
+    setReportLoading(true);
+    setReportError(null);
+    setRepairReport(null);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/report`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...buildPayload(),
+          partId: option.part.id,
+          ...(uploadedImage
+            ? {
+                imageBase64: uploadedImage.base64,
+                mimeType: uploadedImage.mimeType
+              }
+            : {})
+        })
+      });
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as
+          | { error?: string; message?: string }
+          | null;
+        throw new Error(
+          body?.message ??
+            body?.error ??
+            "Could not generate the AI repair report."
+        );
+      }
+
+      const data = (await response.json()) as RepairReportResponse;
+      setRepairReport(data);
+    } catch (caught) {
+      setReportError(
+        caught instanceof Error
+          ? caught.message
+          : "Could not generate the AI repair report."
+      );
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
   const openReceipt = () => {
     const id = lookupOrderId.trim();
     if (id) {
@@ -783,6 +878,9 @@ export default function CheckPage() {
     setReceipt(null);
     setExplanation(null);
     setExplanationError(null);
+    setUploadedImage(null);
+    setRepairReport(null);
+    setReportError(null);
     setPaymentNotice(null);
     setLookupOrderId("");
     setModelSearch("");
@@ -793,6 +891,8 @@ export default function CheckPage() {
     setReceipt(null);
     setExplanation(null);
     setExplanationError(null);
+    setRepairReport(null);
+    setReportError(null);
     setStep(4);
   };
 
@@ -1825,6 +1925,112 @@ export default function CheckPage() {
                         )}
                       </strong>
                     </div>
+                  </div>
+
+                  <div className="report-panel">
+                    <div className="option-top">
+                      <span className="badge-verified">
+                        AI-assisted repair report
+                      </span>
+                      <button
+                        className="button ghost"
+                        type="button"
+                        onClick={() => void handleGenerateReport(selectedOption)}
+                        disabled={reportLoading || !aiConsent}
+                      >
+                        {reportLoading
+                          ? "Writing report…"
+                          : repairReport
+                            ? "Regenerate report"
+                            : "Generate report"}
+                      </button>
+                    </div>
+                    <p className="hint">
+                      Uses the confirmed fields and the uploaded redacted image
+                      when available. The catalog authorizes fitment; the
+                      narrative is AI-assisted and is not a new fitment
+                      decision.
+                    </p>
+                    {!aiConsent ? (
+                      <p className="hint">
+                        Accept AI consent in Step 2 to generate the report.
+                      </p>
+                    ) : null}
+                    {reportError ? (
+                      <div className="notice notice-warning">{reportError}</div>
+                    ) : null}
+                    {repairReport ? (
+                      <article className="report-card" aria-live="polite">
+                        <h3>{repairReport.report.title}</h3>
+                        <p>{repairReport.report.summary}</p>
+                        <div className="report-grid">
+                          <div>
+                            <span className="meta-label">Battery health</span>
+                            <p>{repairReport.report.health}</p>
+                          </div>
+                          <div>
+                            <span className="meta-label">Fitment</span>
+                            <p>{repairReport.report.fitment}</p>
+                          </div>
+                          <div>
+                            <span className="meta-label">Tradeoffs</span>
+                            <p>{repairReport.report.tradeoffs}</p>
+                          </div>
+                          <div>
+                            <span className="meta-label">Safety</span>
+                            <p>{repairReport.report.safety}</p>
+                          </div>
+                        </div>
+                        <div className="report-grid">
+                          <div>
+                            <span className="meta-label">Next steps</span>
+                            <ul className="reason-list">
+                              {repairReport.report.nextSteps.map((step) => (
+                                <li key={step}>{step}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <span className="meta-label">Uncertainties</span>
+                            {repairReport.report.uncertainties.length > 0 ? (
+                              <ul className="reason-list">
+                                {repairReport.report.uncertainties.map(
+                                  (item) => (
+                                    <li key={item}>{item}</li>
+                                  )
+                                )}
+                              </ul>
+                            ) : (
+                              <p className="hint">None stated.</p>
+                            )}
+                          </div>
+                        </div>
+                        <p className="hint">
+                          Source:{" "}
+                          <a
+                            className="source-link"
+                            href={repairReport.source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {repairReport.source.publisher} ↗
+                          </a>
+                          {" · "}
+                          AI-assisted narrative; the catalog fitment decision
+                          remains authoritative. No live stock, shipping,
+                          fulfillment, or warranty is claimed.
+                        </p>
+                        <div className="button-row">
+                          <button
+                            className="button ghost"
+                            type="button"
+                            onClick={() => window.print()}
+                          >
+                            Print report
+                          </button>
+                        </div>
+                      </article>
+                    ) : null}
                   </div>
 
                   <p className="hint">

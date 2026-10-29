@@ -11,8 +11,8 @@ export default function AiDisclosurePage() {
       updated="Prototype AI disclosure · last updated 28 October 2026."
     >
       <p>
-        RepairLoop uses a server-side Gemini model for extraction and source-cited
-        explanation. The configured model name is intentionally not published in
+        RepairLoop uses a server-side Gemini model for extraction, source-cited
+        explanation, and AI-assisted repair reports. The configured model name is intentionally not published in
         this repository. AI is a helper, not the authority.
       </p>
 
@@ -34,6 +34,11 @@ export default function AiDisclosurePage() {
           Explains a catalog-selected part using only the cited catalog/source
           evidence, with a deterministic fallback.
         </li>
+        <li>
+          Writes an AI-assisted repair report from the confirmed fields, the
+          optional redacted image, and the catalog evidence. The selected part
+          and fitment remain catalog-authoritative.
+        </li>
       </ul>
 
       <h2>What AI never does</h2>
@@ -47,8 +52,8 @@ export default function AiDisclosurePage() {
       <h2>Privacy and limits</h2>
       <p>
         Images, free-text symptom/shop text, and the case details used for a
-        source-cited explanation are sent to Gemini after the user checks an
-        AI-consent box; the free tier may use submitted content
+        source-cited explanation or AI repair report are sent to Gemini after
+        the user checks an AI-consent box; the free tier may use submitted content
         to improve Google products. Images are re-encoded server-side to strip
         EXIF/GPS/device metadata before the Gemini request, but the browser
         preview can retain the local file. Crop and redact serials, service

@@ -28,7 +28,10 @@ import {
   labelExtractionSchema,
   labelJsonSchema,
   symptomExtractionSchema,
-  symptomJsonSchema
+  symptomJsonSchema,
+  reportJsonSchema,
+  reportSchema,
+  REPORT_PROMPT
 } from "../ai/schemas.js";
 
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
@@ -57,6 +60,22 @@ const ExplainBodySchema = z
     fullChargeCapacityMwh: z.number().int().positive().optional(),
     symptomTags: z.array(z.string().min(1)).default([]),
     partId: z.string().min(1)
+  })
+  .refine((value) => Boolean(value.modelId || value.modelQuery), {
+    message: "modelId or modelQuery is required"
+  });
+
+const ReportBodySchema = z
+  .object({
+    modelId: z.string().min(1).optional(),
+    modelQuery: z.string().min(1).optional(),
+    installedPartNumber: z.string().min(1).optional(),
+    designCapacityMwh: z.number().int().positive().optional(),
+    fullChargeCapacityMwh: z.number().int().positive().optional(),
+    symptomTags: z.array(z.string().min(1)).default([]),
+    partId: z.string().min(1),
+    imageBase64: z.string().min(64).max(8_000_000).optional(),
+    mimeType: z.enum(ALLOWED_IMAGE_TYPES).optional()
   })
   .refine((value) => Boolean(value.modelId || value.modelQuery), {
     message: "modelId or modelQuery is required"
@@ -547,4 +566,157 @@ ${JSON.stringify(parsed.data.text)}`,
       }
     }
   );
+
+  app.post(
+    "/report",
+    {
+      config: {
+        rateLimit: { max: 20, timeWindow: "1 minute" }
+      }
+    },
+    async (request, reply) => {
+      if (!db) {
+        return reply.code(503).send({ error: "database_not_configured" });
+      }
+
+      if (!aiConfigured()) {
+        return reply.code(503).send({ error: "ai_not_configured" });
+      }
+
+      const parsed = ReportBodySchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.code(400).send({
+          error: "invalid_request",
+          issues: parsed.error.issues
+        });
+      }
+
+      const catalog = await loadCatalog();
+      const result = matchCatalog(catalog, parsed.data);
+
+      if (result.status !== "verified_match" || !result.model) {
+        return reply.code(422).send({
+          error: "no_verified_match",
+          reasons: result.reasons
+        });
+      }
+
+      const options = [
+        ...(result.exact ? [result.exact] : []),
+        ...result.lowerCapacity
+      ];
+      const selected = options.find(
+        (option) => option.part.id === parsed.data.partId
+      );
+
+      if (!selected) {
+        return reply.code(422).send({
+          error: "invalid_selection",
+          message: "The selected part is not a verified option for this case."
+        });
+      }
+
+      const source =
+        catalog.sources.find(
+          (row) => row.id === selected.compatibility.sourceId
+        ) ?? catalog.sources.find((row) => row.id === selected.part.sourceId);
+
+      if (!source) {
+        return reply.code(422).send({ error: "source_not_found" });
+      }
+
+      let image;
+      if (parsed.data.imageBase64) {
+        image = await parseImage({
+          imageBase64: parsed.data.imageBase64,
+          mimeType: parsed.data.mimeType ?? "image/png"
+        });
+      }
+
+      const lower = result.lowerCapacity
+        .map(
+          (option) =>
+            `${option.part.partNumber} (${option.part.capacityWh}Wh, ${option.part.voltage}V)`
+        )
+        .join(", ");
+      const excluded = result.excluded
+        .map((option) => `${option.part.partNumber} (${option.reason})`)
+        .join(", ");
+      const evidence = [
+        `Confirmed model: ${result.model.brand} ${result.model.model}`,
+        `Installed part: ${
+          result.installedPart?.partNumber ??
+          parsed.data.installedPartNumber ??
+          "unknown"
+        }`,
+        `Design capacity: ${
+          parsed.data.designCapacityMwh ?? "not reported"
+        } mWh`,
+        `Full charge capacity: ${
+          parsed.data.fullChargeCapacityMwh ?? "not reported"
+        } mWh`,
+        `Health: ${
+          result.healthPct !== undefined ? `${result.healthPct}%` : "not reported"
+        }`,
+        `Health note: ${result.healthNote ?? "not available"}`,
+        `Symptoms: ${
+          parsed.data.symptomTags.length > 0
+            ? parsed.data.symptomTags.join(", ")
+            : "none selected"
+        }`,
+        `Catalog decision: verified_match`,
+        `Selected replacement: ${selected.part.name}; part ${selected.part.partNumber}; ${selected.part.capacityWh}Wh; ${selected.part.voltage}V; ${selected.part.cells}-cell; seller ${selected.part.seller}`,
+        `Availability: ${selected.part.availability ?? "unknown"}; ${selected.part.availabilityNote ?? "not checked"}`,
+        `Fitment note: ${selected.compatibility.fitmentNote}`,
+        `Evidence quote: ${selected.compatibility.evidenceQuote ?? "not provided"}`,
+        `Source: ${source.publisher}; ${source.url}`,
+        `Lower-capacity options: ${lower || "none"}`,
+        `Excluded variants: ${excluded || "none"}`,
+        `Notes: ${selected.part.notes ?? "none"}`,
+        "Catalog is authoritative for fitment; this is a Sandbox demo with no live stock, shipping, fulfillment, or warranty."
+      ].join("\n");
+
+      try {
+        const startedAt = Date.now();
+        const report = await generateJson({
+          prompt: `${REPORT_PROMPT}\n\nVerified evidence:\n${evidence}`,
+          schema: reportJsonSchema,
+          validate: reportSchema,
+          image
+        });
+        request.log.info(
+          {
+            latencyMs: Date.now() - startedAt,
+            hasImage: Boolean(image),
+            confidence: report.confidence
+          },
+          "ai_repair_report_generated"
+        );
+
+        return {
+          ok: true,
+          report,
+          source: {
+            publisher: source.publisher,
+            url: source.url,
+            evidenceQuote: selected.compatibility.evidenceQuote ?? null,
+            fitmentNote: selected.compatibility.fitmentNote
+          },
+          part: {
+            partNumber: selected.part.partNumber,
+            name: selected.part.name,
+            capacityWh: selected.part.capacityWh,
+            voltage: selected.part.voltage,
+            cells: selected.part.cells,
+            seller: selected.part.seller,
+            availability: selected.part.availability ?? "unknown"
+          },
+          ai: true
+        };
+      } catch (error) {
+        return sendAiError(reply, error);
+      }
+    }
+  );
+
 }
