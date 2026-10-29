@@ -99,7 +99,7 @@ npm test                 # 45 API, catalog, safety, webhook, token, and PayPal t
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run test:e2e         # 18 browser tests: desktop + mobile Chromium; WebKit mobile in CI
+npm run test:e2e         # 19 browser tests: desktop + mobile Chromium; WebKit mobile in CI
 ```
 
 The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the deployed API.

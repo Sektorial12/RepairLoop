@@ -168,6 +168,58 @@ test("a shop quote opens the buyer checkout flow", async ({ page }) => {
   ).toBeVisible({ timeout: 20_000 });
 });
 
+test("AI repair report uses the confirmed catalog case", async ({ page }) => {
+  await mockModels(page);
+  await mockMatches(page);
+  await page.route("**/api/report", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        report: {
+          title: "Test battery report",
+          summary: "The catalog verified the selected part for this confirmed case.",
+          health: "The reported capacity is above the replacement threshold.",
+          fitment: "The selected 4GVMP family is the exact catalog match.",
+          tradeoffs: "Lower-capacity alternatives are labelled.",
+          safety: "No damaged-battery symptoms were selected.",
+          nextSteps: ["Review the source evidence."],
+          uncertainties: [],
+          confidence: 0.9
+        },
+        source: {
+          publisher: "Parts-People",
+          url: "https://www.parts-people.com/index.php?action=item&id=30351"
+        },
+        part: {
+          partNumber: "4GVMP",
+          name: "Dell 68Wh 4-cell replacement battery (7.6V)",
+          capacityWh: 68,
+          voltage: "7.6",
+          cells: 4,
+          seller: "Parts-People",
+          availability: "reported_in_stock"
+        },
+        ai: true
+      }
+    })
+  );
+
+  await page.goto("/check?demo=1");
+  await page.getByRole("heading", { name: "Verified replacement" }).waitFor({ timeout: 20_000 });
+  await page.getByRole("button", { name: "Edit details" }).click();
+  await page.getByLabel(/Images, free-text/).check();
+  await page.getByRole("button", { name: "Continue to symptoms" }).click();
+  await page.getByText("Runs briefly / short runtime", { exact: true }).click();
+  await page.getByRole("button", { name: "Check compatibility" }).click();
+  await page.getByRole("heading", { name: "Verified replacement" }).waitFor({ timeout: 20_000 });
+  await page.getByRole("button", { name: "Review this part" }).click();
+  await page.getByRole("button", { name: "Generate report" }).click();
+  await expect(page.getByRole("heading", { name: "Test battery report" })).toBeVisible({
+    timeout: 20_000
+  });
+  await expect(page.getByText("The catalog verified the selected part")).toBeVisible();
+});
+
 test("Start over clears the demo identity", async ({ page }) => {
   await mockModels(page);
   await mockMatches(page);
