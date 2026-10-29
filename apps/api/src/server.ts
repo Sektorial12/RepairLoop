@@ -36,7 +36,7 @@ const app = Fastify({
 await app.register(cors, {
   origin: corsOrigins,
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
+  allowedHeaders: ["Content-Type", "x-capture-token"]
 });
 
 await app.register(helmet, {

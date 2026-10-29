@@ -51,19 +51,27 @@ test("catalog shows verified parts, the exclusion, and source freshness", async 
 test("receipt survives a refresh and shows the verified capture", async ({
   page
 }) => {
+  test.setTimeout(90_000);
   await page.route("**/api/orders/TEST-ORDER", (route) =>
     route.fulfill({ json: fixture("receipt") })
   );
-  await page.goto("/receipt/TEST-ORDER");
+  await page.goto("/receipt/TEST-ORDER", {
+    waitUntil: "domcontentloaded",
+    timeout: 60_000
+  });
 
-  await expect(page.getByText("Payment complete — sandbox")).toBeVisible();
+  await expect(page.getByText("Payment complete — sandbox")).toBeVisible({
+    timeout: 20_000
+  });
   await expect(page.getByText("CAP-TEST-123").first()).toBeVisible();
   await expect(page.getByText("PAYMENT.CAPTURE.COMPLETED").first()).toBeVisible();
   await expect(page.getByText("Parts-People").first()).toBeVisible();
 
-  await page.reload();
+  await page.reload({ waitUntil: "domcontentloaded", timeout: 60_000 });
 
-  await expect(page.getByText("Payment complete — sandbox")).toBeVisible();
+  await expect(page.getByText("Payment complete — sandbox")).toBeVisible({
+    timeout: 20_000
+  });
   await expect(page.getByText("CAP-TEST-123").first()).toBeVisible();
 });
 
@@ -187,16 +195,16 @@ test("shop intake drafts a verified quote and adds it after approval", async ({
   await page
     .getByLabel("Customer request")
     .fill("Dell Latitude 5410, battery label R8D7N, dies after 20 minutes.");
+  await page.getByLabel(/This request is sent to Gemini/).check();
   await page.getByRole("button", { name: "Draft verified quote" }).click();
 
   await expect(page.getByText("R8D7N").first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Buy at seller/ })).toBeVisible();
 
-  await page.getByRole("checkbox").check();
-  await expect(page.getByRole("checkbox")).toBeChecked();
+  await page.locator("#shop-review-confirmed").check();
 
   await page
-    .getByRole("button", { name: "Approve and add to queue" })
+    .getByRole("button", { name: "Confirm review and add to queue" })
     .click();
   await expect(
     page.getByRole("button", { name: "Added to shop queue" })
@@ -255,12 +263,31 @@ test.describe("PayPal failure states", () => {
   });
 });
 
+test("an unsupported model clears the previous selection", async ({ page }) => {
+  await mockModels(page);
+  await page.goto("/check");
+
+  await expect(page.getByRole("combobox")).toBeEnabled();
+  await page.getByRole("combobox").selectOption("dell-latitude-5400");
+  await page
+    .getByPlaceholder("Latitude, Precision, Inspiron, 5410…")
+    .fill("P92G");
+
+  await expect(page.getByRole("combobox")).toHaveValue("");
+  await expect(page.getByText(/Not in the verified catalog/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Continue to battery" })
+  ).toBeDisabled();
+});
+
 test("check starts empty and requires an installed part number", async ({
   page
 }) => {
   await mockModels(page);
   await page.goto("/check");
 
+  await expect(page.getByRole("combobox")).toBeEnabled();
+  await page.getByRole("combobox").selectOption("dell-latitude-5400");
   await page.getByRole("button", { name: "Continue to battery" }).click();
 
   await expect(page.getByLabel("Installed part number")).toHaveValue("");

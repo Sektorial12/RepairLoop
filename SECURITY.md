@@ -11,7 +11,7 @@
 
 - PayPal Sandbox only; `DEMO_MODE=true` blocks a live PayPal base and no real money is taken.
 - Amounts are computed server-side from the verified catalog. Never trust a client-provided amount.
-- Capture is server-side; success is shown only after a verified `COMPLETED` capture.
+- Capture is server-side and requires the per-order capability token returned only to the checkout session; success is shown only after a verified `COMPLETED` capture. Shared receipt links are read-only.
 - Verify webhook signatures using the raw request body and the configured webhook ID; reject transmissions outside a 15-minute window.
 - Deduplicate by PayPal event ID before state changes; apply only monotonic status transitions (no approved/capture replay downgrade).
 - Treat symptom text as untrusted data in AI prompts; never let AI change catalog, price, or payment state.
@@ -26,7 +26,7 @@
 - Send Helmet-style API headers; the web app sends a full CSP (scripts, frames, images, connections, form-action, frame-ancestors), frame denial, referrer policy, permissions policy, and HSTS.
 - Deduplicate webhook events by event ID and reject unverified signatures.
 - Validate all request bodies with Zod.
-- Upload limits: images only, 6 MB, no executables; strip metadata where possible.
+- Upload limits: images only, 6 MB, no executables; images are re-encoded with sharp (auto-orient, no metadata copy) before Gemini to strip EXIF/GPS/device metadata. The client preview can retain the local file before upload.
 - Bind to localhost in development; bind to the platform-provided host in production and terminate HTTPS at the reverse proxy.
 - Run the API with least privilege and process isolation.
 - Do not expose stack traces or secrets in error responses; malformed JSON returns 400.
@@ -34,7 +34,7 @@
 
 ## Data
 
-- The shop queue is browser-local; there is no public queue endpoint. The shareable receipt remains public by design and shows only sandbox part/amount/event data, not payer PII.
+- The shop queue is stored in browser localStorage; there is no public queue endpoint. The shareable receipt remains public by design and is read-only; it shows only sandbox part/amount/event data, not payer PII. Capture retries require a per-order capability token and are not exposed on the shared receipt.
 
 - Store only the fields needed for a repair case: model, capacities, health %, confirmed part number, selected part, and payment references.
 - Prototype privacy, terms, and AI disclosure are linked in the app footer.
@@ -42,7 +42,7 @@
 - Do not store the full battery report, label image, serial number, or service tag.
 - Redact serials/service tags in screenshots, videos, and the repository.
 - Use synthetic or own photos for the demo; obtain permission for any borrowed device or repair-shop footage.
-- Provide a clear disclaimer: RepairLoop is not affiliated with Dell; compatibility is source-verified but the user should confirm before purchase.
+- Provide a clear disclaimer: RepairLoop is not affiliated with Dell or Lenovo; compatibility is source-verified but the user should confirm before purchase. There is no general authentication, seller integration, fulfillment, warranty, or returns flow; this remains a Sandbox prototype.
 
 ## Disclosure
 

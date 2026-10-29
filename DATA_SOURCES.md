@@ -2,7 +2,7 @@
 
 RepairLoop uses a deliberately small, source-linked catalog. It does **not** claim that AI can determine fitment. Compatibility, capacity, voltage, and part numbers are transcribed from public manufacturer and reputable parts sources, then human-verified.
 
-**Rule:** every verified mapping needs a primary product source, an evidence quote, and a `verified_at` date. Additional independent sources are recorded where available; the 68Wh `4GVMP` mapping is corroborated by Dell specifications, Parts-People, iFixit, and LaptopBatteryExpress. If the primary source is ambiguous or missing, the part is marked `unverified` and cannot be purchased. The app does not claim live stock, shipping, or availability.
+**Rule:** every verified mapping needs a primary product source, an evidence quote, and a `verified_at` date. Additional independent sources are recorded where available; the 68Wh `4GVMP` mapping is corroborated by Dell specifications, Parts-People, iFixit, and LaptopBatteryExpress. If the primary source is ambiguous or missing, the part is marked `unverified` and cannot be purchased. Fitment is not availability: seller stock/price are point-in-time reports, not a live feed. R8D7N is fitment-verified but seller-reported out of stock as of 28 Oct 2026, so checkout is disabled for it.
 
 ## Device and battery facts
 
@@ -13,7 +13,7 @@ RepairLoop uses a deliberately small, source-linked catalog. It does **not** cla
 | Dell parts lookup requires exact system configuration; search by Service Tag or part number | [Dell Parts](https://www.dell.com/en-us/shop/dell-parts/partsforyourdell) | Problem framing | Verified |
 | Dell 3-cell 42Wh replacement battery is compatible with Latitude 5400/5500/Precision 3540 | [Dell CPX-7T0D3](https://www.dell.com/en-us/shop/dell-3-cell-42-wh-lithium-ion-replacement-battery-for-select-laptops/apd/cpx-7t0d3/pc-accessories) | 42Wh compatibility | Verified |
 | Dell OEM 4-cell 68Wh 7.6V battery for Latitude 5400/5500/Precision 3540, Inspiron 7590/7591/7791 2-in-1, and Latitude 5400 Chromebook; DP/N includes `RF7WM`, `C5GV2`, `X77XY`, `9JRYT`, `MCV1G`, `5H46R` | [Parts-People 4GVMP](https://www.parts-people.com/index.php?action=item&id=30351) | 68Wh family | Verified |
-| Dell OEM 3-cell 51Wh battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; part `R8D7N` | [Parts-People R8D7N](https://www.parts-people.com/index.php?action=item&id=30356) | 51Wh family | Verified |
+| Dell OEM 3-cell 51Wh battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; part `R8D7N` | [Parts-People R8D7N](https://www.parts-people.com/index.php?action=item&id=30356) | 51Wh family | Fitment verified; seller reported out of stock 28 Oct 2026 |
 | Dell OEM 3-cell 42Wh battery for Latitude 5400/5401/5500/5501/5510/5511/5410/5411, Precision 3540/3541/3550/3551, Inspiron 7591 2-in-1, and Latitude 5400 Chromebook Enterprise; part `1V1XF` | [Parts-People 1V1XF](https://www.parts-people.com/index.php?action=item&id=30353) | 42Wh family | Verified |
 | Lenovo ThinkPad T480s (20L7/20L8) internal 3-cell 57Wh battery; FRU `01AV478`/`01AV479`/`01AV480`; 11.58V | [Lenovo T480s FRU BOM](https://download.lenovo.com/parts/ThinkPad/t480s_frubom_mt_20l7_20l8_20180226.pdf), [iFixit 01AV478](https://www.ifixit.com/products/lenovo-thinkpad-t480s-battery) | T480s 57Wh family | Verified |
 | Latitude 5400 battery guide: 10–40 minutes, moderate; parts `1V1XF`, `R8D7N`, `4GVMP`, `3HWPP` | [iFixit guide](https://www.ifixit.com/Guide/Dell+Latitude+5400+Battery+Replacement/201472), [iFixit parts](https://www.ifixit.com/Parts/Dell_Latitude_5400/Batteries) | Repair steps; cross-check | Verified |
@@ -47,6 +47,13 @@ From a redacted demo battery report:
 - No copied Dell/iFixit images or long text. Links are provided. Product photos must be original or licensed.
 - No real customer data, serial numbers, or service tags in public materials.
 
+## Model source and alias policy
+
+- Every model ID maps to a source in `modelSourceIds` in `apps/api/src/catalog/data.ts`; the catalog API returns that source with the model.
+- `P92G` is **not** a Latitude 5400 alias. Dell’s Latitude 5400 manual identifies `P98G`/`P98G001`; the iFixit guide’s `P92G` wording is not used for fitment.
+- Bare `7590` is **not** an alias. Only the explicitly sourced `Inspiron 7590 2-in-1` family is supported.
+- `catalog:check` rejects alias collisions, `P92G`, and bare `7590`, and requires a source for every model.
+
 ## Verification workflow
 
 1. Transcribe the fact from the source.
@@ -57,7 +64,7 @@ From a redacted demo battery report:
 6. Re-check before submission; flag stale rows.
 7. Never let AI create or alter a compatibility row.
 
-Dell is a trademark of Dell Inc. RepairLoop is not affiliated with or endorsed by Dell.
+Dell is a trademark of Dell Inc.; Lenovo and ThinkPad are trademarks of Lenovo. RepairLoop is not affiliated with or endorsed by either company.
 
 ## Adjacent-family review (28 Oct 2026)
 

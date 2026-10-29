@@ -1,5 +1,10 @@
 export type PartStatus = "verified" | "unverified" | "stale" | "rejected";
 
+export type PartAvailabilityStatus =
+  | "reported_in_stock"
+  | "reported_out_of_stock"
+  | "unknown";
+
 export interface SourceRow {
   id: string;
   publisher: string;
@@ -16,6 +21,7 @@ export interface ModelRow {
   model: string;
   aliases: string[];
   regulatoryModel?: string | null;
+  sourceId?: string | null;
 }
 
 export interface PartRow {
@@ -34,6 +40,10 @@ export interface PartRow {
   sourceId: string;
   verifiedAt: Date | null;
   notes?: string | null;
+  availability?: PartAvailabilityStatus;
+  availabilityCheckedAt?: Date | null;
+  availabilityNote?: string | null;
+  availabilitySourceUrl?: string | null;
 }
 
 export interface CompatibilityRow {

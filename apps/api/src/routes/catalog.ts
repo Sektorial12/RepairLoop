@@ -13,6 +13,7 @@ export async function catalogRoutes(app: FastifyInstance): Promise<void> {
     return {
       models: catalog.models,
       parts: catalog.parts,
+      compatibility: catalog.compatibility,
       sources: catalog.sources
     };
   });

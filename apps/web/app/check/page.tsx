@@ -34,6 +34,7 @@ type Model = {
   model: string;
   aliases: string[];
   regulatoryModel?: string | null;
+  sourceId?: string | null;
 };
 
 type Part = {
@@ -52,6 +53,10 @@ type Part = {
   sourceId: string;
   verifiedAt: string | null;
   notes?: string | null;
+  availability?: "reported_in_stock" | "reported_out_of_stock" | "unknown";
+  availabilityCheckedAt?: string | null;
+  availabilityNote?: string | null;
+  availabilitySourceUrl?: string | null;
 };
 
 type Compatibility = {
@@ -172,16 +177,55 @@ const REASON_LABELS: Record<string, string> = {
   unverified_for_configuration: "Unverified for your configuration."
 };
 
-const REPAIR_GUIDES = [
+const REPAIR_GUIDES: Record<string, Array<{ label: string; href: string }>> = {
+  "dell-latitude-5400": [
+    {
+      label: "Dell service manual",
+      href: "https://www.dell.com/support/manuals/en-us/latitude-14-5400-laptop/latitude_5400_servicemanual/removing-the-battery"
+    },
+    {
+      label: "iFixit guide",
+      href: "https://www.ifixit.com/Guide/Dell+Latitude+5400+Battery+Replacement/201472"
+    }
+  ],
+  "lenovo-thinkpad-t480s": [
+    {
+      label: "Lenovo FRU BOM",
+      href: "https://download.lenovo.com/parts/ThinkPad/t480s_frubom_mt_20l7_20l8_20180226.pdf"
+    },
+    {
+      label: "T480s battery reference",
+      href: "https://www.ifixit.com/products/lenovo-thinkpad-t480s-battery"
+    }
+  ]
+};
+
+const DEFAULT_REPAIR_GUIDES = [
   {
-    label: "Dell service manual",
-    href: "https://www.dell.com/support/manuals/en-us/latitude-14-5400-laptop/latitude_5400_servicemanual/removing-the-battery"
-  },
-  {
-    label: "iFixit guide",
-    href: "https://www.ifixit.com/Guide/Dell+Latitude+5400+Battery+Replacement/201472"
+    label: "Manufacturer support",
+    href: "https://www.dell.com/support/home/en-us"
   }
 ];
+
+function guidesFor(modelId?: string): Array<{ label: string; href: string }> {
+  return (modelId && REPAIR_GUIDES[modelId]) || DEFAULT_REPAIR_GUIDES;
+}
+
+function availabilityLabel(
+  status: "reported_in_stock" | "reported_out_of_stock" | "unknown" = "unknown"
+): string {
+  if (status === "reported_in_stock") return "Seller reported in stock";
+  if (status === "reported_out_of_stock") return "Seller reported out of stock";
+  return "Seller stock not verified";
+}
+
+function availabilityClass(
+  status: "reported_in_stock" | "reported_out_of_stock" | "unknown" = "unknown"
+): string {
+  if (status === "reported_in_stock") return "badge-verified";
+  if (status === "reported_out_of_stock") return "badge-excluded";
+  return "badge-lower";
+}
 
 function money(value: string, currency: string): string {
   return new Intl.NumberFormat("en-US", {
@@ -259,13 +303,6 @@ export default function CheckPage() {
         const data = (await response.json()) as { models: Model[] };
         if (!cancelled) {
           setModels(data.models);
-          if (!initialModelSelected.current && data.models.length > 0) {
-            const preferred = data.models.find(
-              (model) => model.id === "dell-latitude-5400"
-            );
-            setModelId(preferred?.id ?? data.models[0].id);
-            initialModelSelected.current = true;
-          }
         }
       } catch (caught) {
         if (!cancelled) {
@@ -292,9 +329,6 @@ export default function CheckPage() {
       candidate.toLowerCase().includes(normalizedModelSearch)
     );
   });
-  if (selectedModel && visibleModels.length === 0) {
-    visibleModels.unshift(selectedModel);
-  }
   const sourceFor = (sourceId?: string): Source | undefined =>
     result?.sources?.find((source) => source.id === sourceId);
 
@@ -508,6 +542,7 @@ export default function CheckPage() {
         if (matchedModel) {
           setModelId(matchedModel.id);
         } else {
+          setModelId("");
           warnings.push(
             `Model “${extraction.model}” was not recognized; select it manually.`
           );
@@ -583,6 +618,11 @@ export default function CheckPage() {
       const matchedModel = findModel(extraction.model);
       if (matchedModel) {
         setModelId(matchedModel.id);
+      } else if (extraction.model) {
+        setModelId("");
+        extraction.warnings.push(
+          `Model “${extraction.model}” was not recognized; select it manually.`
+        );
       }
       if (extraction.capacityWh) {
         setDesignCapacityMwh(String(Math.round(extraction.capacityWh * 1000)));
@@ -609,7 +649,7 @@ export default function CheckPage() {
   };
 
   const handleParseSymptoms = async () => {
-    if (!symptomText.trim()) return;
+    if (!symptomText.trim() || !aiConsent) return;
 
     setAiBusy("symptoms");
     setError(null);
@@ -680,7 +720,7 @@ export default function CheckPage() {
         throw new Error(
           body?.message ??
             body?.error ??
-            "Could not generate a grounded explanation."
+            "Could not generate a source-cited explanation."
         );
       }
 
@@ -690,7 +730,7 @@ export default function CheckPage() {
       setExplanationError(
         caught instanceof Error
           ? caught.message
-          : "Could not generate a grounded explanation."
+          : "Could not generate a source-cited explanation."
       );
     } finally {
       setExplanationLoading(false);
@@ -1057,14 +1097,17 @@ export default function CheckPage() {
                   onChange={(event) => {
                     const query = event.target.value;
                     setModelSearch(query);
-                    const normalized = query.trim().toLowerCase();
-                    if (!normalized) return;
-                    const first = models.find((model) =>
+                    const normalized = normalizeValue(query);
+                    if (!normalized) {
+                      setModelId("");
+                      return;
+                    }
+                    const matches = models.filter((model) =>
                       [model.model, ...model.aliases].some((candidate) =>
-                        candidate.toLowerCase().includes(normalized)
+                        normalizeValue(candidate).includes(normalized)
                       )
                     );
-                    if (first) setModelId(first.id);
+                    setModelId(matches.length === 1 ? matches[0].id : "");
                   }}
                   placeholder="Latitude, Precision, Inspiron, 5410…"
                   autoComplete="off"
@@ -1102,9 +1145,10 @@ export default function CheckPage() {
                 </div>
               </div>
               <p className="hint">
-                We cover source-linked Dell Latitude, Precision, and Inspiron
-                battery families. Unsupported models get a clear “no verified
-                match” instead of a guess.{" "}
+                We cover source-linked Dell Latitude, Precision, Inspiron, and
+                Lenovo ThinkPad T480s battery families. Unsupported or ambiguous
+                models get a clear “no verified match” instead of retaining a
+                previous selection.{" "}
                 <a
                   className="inline-link"
                   href="https://github.com/Sektorial12/RepairLoop/issues/new?title=Model%20request&body=Device%20model%3A%0APart%20number%3A%0A"
@@ -1114,6 +1158,28 @@ export default function CheckPage() {
                   Request another model ↗
                 </a>
               </p>
+              {normalizedModelSearch && visibleModels.length === 0 ? (
+                <div className="notice notice-warning">
+                  <strong>Not in the verified catalog.</strong> We will not
+                  guess a substitute. Check the model or{" "}
+                  <a
+                    className="inline-link"
+                    href="https://github.com/Sektorial12/RepairLoop/issues/new?title=Model%20request&body=Device%20model%3A%0APart%20number%3A%0A"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    request another model ↗
+                  </a>
+                </div>
+              ) : null}
+              {normalizedModelSearch &&
+              visibleModels.length > 1 &&
+              !modelId ? (
+                <p className="hint">
+                  Multiple models match. Choose the exact model from the list;
+                  no default is assumed.
+                </p>
+              ) : null}
               <div className="button-row">
                 <button
                   className="button primary"
@@ -1141,8 +1207,9 @@ export default function CheckPage() {
                   onChange={(event) => setAiConsent(event.target.checked)}
                 />
                 <span>
-                  Images are sent to Gemini for extraction. The free tier may
-                  use content to improve Google products. Crop to the battery
+                  Images and free-text symptom descriptions are sent to Gemini
+                  for extraction. The free tier may use content to improve
+                  Google products. Crop to the battery
                   section and redact serial numbers, service tags, and personal
                   data before uploading.
                 </span>
@@ -1296,11 +1363,18 @@ export default function CheckPage() {
                 the serial number or usage history.{" "}
                 <a
                   className="inline-link"
-                  href="https://www.dell.com/support/contents/en-us/article/product-support/self-support-knowledgebase/battery-and-power/battery"
+                  href={
+                    selectedModel?.brand === "Lenovo"
+                      ? "https://support.lenovo.com/us/en/"
+                      : "https://www.dell.com/support/contents/en-us/article/product-support/self-support-knowledgebase/battery-and-power/battery"
+                  }
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Dell battery health guidance ↗
+                  {selectedModel?.brand === "Lenovo"
+                    ? "Lenovo support"
+                    : "Battery health guidance"}{" "}
+                  ↗
                 </a>
               </p>
 
@@ -1368,7 +1442,9 @@ export default function CheckPage() {
                   className="button ghost"
                   type="button"
                   onClick={() => void handleParseSymptoms()}
-                  disabled={aiBusy !== null || !symptomText.trim()}
+                  disabled={
+                    aiBusy !== null || !symptomText.trim() || !aiConsent
+                  }
                 >
                   {aiBusy === "symptoms" ? "Reading…" : "Extract symptoms"}
                 </button>
@@ -1401,8 +1477,8 @@ export default function CheckPage() {
                 </div>
               ) : (
                 <p className="hint">
-                  Symptoms help narrow the likely part category. They do not
-                  replace a diagnosis; the catalog still decides fitment.
+                  Symptoms are optional. Only the damaged-battery safety stop
+                  changes the flow; the catalog still decides fitment.
                 </p>
               )}
               <div className="button-row">
@@ -1417,7 +1493,7 @@ export default function CheckPage() {
                   className="button primary"
                   type="button"
                   onClick={() => void runMatch()}
-                  disabled={loading || symptomTags.length === 0}
+                  disabled={loading}
                 >
                   {loading ? "Checking the catalog…" : "Check compatibility"}
                 </button>
@@ -1499,7 +1575,7 @@ export default function CheckPage() {
                   <div className="explanation-panel">
                     <div className="option-top">
                       <span className="badge-verified">
-                        Grounded AI explanation
+                        Source-cited AI explanation
                       </span>
                       <button
                         className="button ghost"
@@ -1538,7 +1614,7 @@ export default function CheckPage() {
                     ) : (
                       <p className="hint">
                         The catalog decides fitment. AI may explain it only from
-                        the cited source, and the citation is validated.
+                        the cited source; the URL is validated, not every wording claim.
                       </p>
                     )}
                     {explanationError ? (
@@ -1656,7 +1732,7 @@ export default function CheckPage() {
                           ? `${result.model.brand} ${result.model.model}`
                           : selectedModel
                             ? `${selectedModel.brand} ${selectedModel.model}`
-                            : "Dell Latitude 5400"}
+                            : "Select a model"}
                       </strong>
                       <span className="hint">
                         Installed: {installedPartNumber || "not provided"}
@@ -1672,6 +1748,9 @@ export default function CheckPage() {
                         {selectedOption.part.capacityWh}Wh ·{" "}
                         {selectedOption.part.voltage}V ·{" "}
                         {selectedOption.part.cells}-cell
+                      </span>
+                      <span className={availabilityClass(selectedOption.part.availability)}>
+                        {availabilityLabel(selectedOption.part.availability)}
                       </span>
                     </div>
                     <div className="review-block">
@@ -1743,6 +1822,8 @@ export default function CheckPage() {
                     <strong>Sandbox simulation.</strong> No part ships. Shipping
                     and tax are shown as $0.00 because there is no real sale;
                     seller fulfillment, returns, and warranty are not provided.
+                    Seller stock shown here is a point-in-time report, not live
+                    inventory.
                   </div>
 
                   {receipt ? (
@@ -1856,7 +1937,15 @@ export default function CheckPage() {
                         </p>
                       </div>
 
-                      {orderPayload ? (
+                      {selectedOption.part.availability ===
+                      "reported_out_of_stock" ? (
+                        <div className="notice notice-danger">
+                          <strong>Seller reports out of stock.</strong>{" "}
+                          {selectedOption.part.availabilityNote} Checkout is
+                          disabled for this part; choose a verified in-stock
+                          option or check the seller.
+                        </div>
+                      ) : orderPayload ? (
                         <PayPalCheckout
                           payload={orderPayload}
                           amountLabel={money(
@@ -1892,7 +1981,7 @@ export default function CheckPage() {
                 <div>
                   <span className="meta-label">Repair card</span>
                   <strong>
-                    {result?.model?.model ?? "Dell Latitude 5400"} ·{" "}
+                    {result?.model?.model ?? "Select a model"} ·{" "}
                     {selectedOption?.part.partNumber ?? "No part selected"}
                   </strong>
                   <p className="hint">
@@ -1901,7 +1990,7 @@ export default function CheckPage() {
                   </p>
                 </div>
                 <div className="guide-links">
-                  {REPAIR_GUIDES.map((guide) => (
+                  {guidesFor(result?.model?.id).map((guide) => (
                     <a
                       key={guide.href}
                       href={guide.href}
@@ -1957,6 +2046,8 @@ function OptionCard({
   onChoose: () => void;
   lower?: boolean;
 }) {
+  const availability = option.part.availability ?? "unknown";
+  const outOfStock = availability === "reported_out_of_stock";
   return (
     <article className={`option-card ${selected ? "selected" : ""}`}>
       <div className="option-top">
@@ -1965,6 +2056,11 @@ function OptionCard({
         </span>
         <span className="option-part">{option.part.partNumber}</span>
       </div>
+      <p className="hint">
+        <span className={availabilityClass(availability)}>
+          {availabilityLabel(availability)}
+        </span>
+      </p>
       <h3>{option.part.name}</h3>
       <p className="option-spec">
         {option.part.capacityWh}Wh · {option.part.voltage}V ·{" "}
@@ -1975,6 +2071,9 @@ function OptionCard({
         {money(option.part.priceDemo, option.part.currency)}{" "}
         <span className="hint">· {option.part.seller}</span>
       </p>
+      {option.part.availabilityNote ? (
+        <p className="hint">{option.part.availabilityNote}</p>
+      ) : null}
       <div className="source-line">
         {source ? (
           <a href={source.url} target="_blank" rel="noreferrer">
@@ -1986,8 +2085,17 @@ function OptionCard({
         <span>Verified {dateLabel(option.part.verifiedAt)}</span>
       </div>
       <div className="button-row">
-        <button className="button primary" type="button" onClick={onChoose}>
-          {lower ? "Choose lower-capacity option" : "Review this part"}
+        <button
+          className="button primary"
+          type="button"
+          onClick={onChoose}
+          disabled={outOfStock}
+        >
+          {outOfStock
+            ? "Seller reports out of stock"
+            : lower
+              ? "Choose lower-capacity option"
+              : "Review this part"}
         </button>
       </div>
     </article>

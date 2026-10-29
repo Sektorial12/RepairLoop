@@ -8,6 +8,10 @@ import { z } from "zod";
 import { loadCatalog } from "../catalog/load.js";
 import { corsOrigins } from "../config.js";
 import { matchCatalog } from "../catalog/matcher.js";
+import {
+  createCaptureToken,
+  verifyCaptureToken
+} from "../checkout/capability.js";
 import { db } from "../db/client.js";
 import {
   orders,
@@ -235,6 +239,14 @@ export async function checkoutRoutes(
         });
       }
 
+      if (selected.part.availability === "reported_out_of_stock") {
+        return reply.code(409).send({
+          error: "seller_reports_out_of_stock",
+          message:
+            "The fitment is verified, but the named seller reports this part out of stock. No order was created."
+        });
+      }
+
       const [existing] = await database
         .select()
         .from(orders)
@@ -260,7 +272,8 @@ export async function checkoutRoutes(
             amount: existing.amount,
             currency: existing.currency,
             status: existing.status,
-            existing: true
+            existing: true,
+            captureToken: createCaptureToken(existing.paypalOrderId)
           };
         }
       }
@@ -312,6 +325,7 @@ export async function checkoutRoutes(
         amount,
         currency,
         status: "created",
+        captureToken: createCaptureToken(paypalOrder.id),
         approvalUrl:
           paypalOrder.links?.find(
             (link) =>
@@ -333,6 +347,17 @@ export async function checkoutRoutes(
       return reply.code(400).send({
         error: "invalid_request",
         issues: parsed.error.issues
+      });
+    }
+
+    const rawToken = request.headers["x-capture-token"];
+    const captureToken = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+    if (
+      !verifyCaptureToken(parsed.data.orderId, captureToken)
+    ) {
+      return reply.code(403).send({
+        error: "capture_not_authorized",
+        message: "This capture request did not come from the checkout session."
       });
     }
 

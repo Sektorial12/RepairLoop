@@ -84,10 +84,10 @@ function healthPercent(
 
 function healthNote(percent: number): string {
   if (percent < 40) {
-    return "Dell guidance: full charge capacity is below 40% of design capacity; replacement is recommended.";
+    return "Battery health guidance: full charge capacity is below 40% of design capacity; replacement is recommended.";
   }
 
-  return "Above Dell's 40% replacement threshold; replacement is optional if runtime is insufficient.";
+  return "Battery health guidance: above the 40% replacement threshold; replacement is optional if runtime is insufficient.";
 }
 
 function noMatch(reasons: string[], model?: ModelRow): MatchResult {
@@ -123,7 +123,7 @@ export function matchCatalog(
         tag: safetySymptom.tag,
         label: safetySymptom.label,
         message:
-          "Damaged or overheating lithium-ion batteries can be hazardous. Stop using the device, do not attempt a DIY replacement, and contact a repair professional or Dell support."
+          "Damaged or overheating lithium-ion batteries can be hazardous. Stop using the device, do not attempt a DIY replacement, and contact a repair professional or the device manufacturer."
       }
     };
   }

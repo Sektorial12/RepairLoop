@@ -128,6 +128,7 @@ export function PayPalCheckout({
   const repairCaseIdRef = useRef<string | null>(null);
   const forceNewOrderRef = useRef(false);
   const attemptIdRef = useRef<string>(globalThis.crypto.randomUUID());
+  const captureTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -219,7 +220,9 @@ export function PayPalCheckout({
           orderId: string;
           amount?: string;
           currency?: string;
+          captureToken?: string;
         };
+        captureTokenRef.current = orderData.captureToken ?? null;
         if (orderData.amount && orderData.currency) {
           setDisplayAmount(
             new Intl.NumberFormat("en-US", {
@@ -261,6 +264,9 @@ export function PayPalCheckout({
               )}/capture`,
               {
                 method: "POST",
+                headers: captureTokenRef.current
+                  ? { "x-capture-token": captureTokenRef.current }
+                  : undefined,
                 signal: AbortSignal.timeout(30000)
               }
             );
@@ -303,7 +309,9 @@ export function PayPalCheckout({
           forceNewOrderRef.current = true;
           attemptIdRef.current = globalThis.crypto.randomUUID();
           setStatus("ready");
-          setError("PayPal could not complete the payment. No charge.");
+          setError(
+            "PayPal could not confirm completion. Do not assume no charge; open the receipt or check the order before retrying."
+          );
         }
       });
 

@@ -46,9 +46,6 @@ export default function ReceiptPage() {
   const [data, setData] = useState<ReceiptData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [capturing, setCapturing] = useState(false);
-  const [captureError, setCaptureError] = useState<string | null>(null);
-
   useEffect(() => {
     if (!orderId) return;
     let cancelled = false;
@@ -86,34 +83,6 @@ export default function ReceiptPage() {
       cancelled = true;
     };
   }, [orderId]);
-
-  const retryCapture = async () => {
-    if (!orderId) return;
-    setCapturing(true);
-    setCaptureError(null);
-
-    try {
-      const response = await fetch(
-        `${apiBaseUrl}/api/checkout/orders/${encodeURIComponent(orderId)}/capture`,
-        { method: "POST" }
-      );
-      const body = (await response.json().catch(() => null)) as
-        | { error?: string; message?: string }
-        | null;
-      if (!response.ok) {
-        throw new Error(
-          body?.message ?? body?.error ?? `Capture retry returned ${response.status}.`
-        );
-      }
-      window.location.reload();
-    } catch (caught) {
-      setCaptureError(
-        caught instanceof Error ? caught.message : "Could not retry the capture."
-      );
-    } finally {
-      setCapturing(false);
-    }
-  };
 
   return (
     <main>
@@ -244,25 +213,12 @@ export default function ReceiptPage() {
               <p className="hint">
                 Compatibility is verified by the source-linked catalog. PayPal
                 completes the payment; it does not verify the part. Sandbox
-                only — no real money moved.
+                only — no real money moved. This shared receipt is read-only;
+                capture retry is available only from the checkout session that
+                created the order.
               </p>
 
-              {captureError ? (
-                <div className="notice notice-danger">{captureError}</div>
-              ) : null}
-
               <div className="button-row">
-                {data.order.status === "created" ||
-                data.order.status === "approved" ? (
-                  <button
-                    className="button primary"
-                    type="button"
-                    onClick={() => void retryCapture()}
-                    disabled={capturing}
-                  >
-                    {capturing ? "Retrying capture…" : "Retry capture"}
-                  </button>
-                ) : null}
                 <Link className="button primary" href="/check">
                   Check another device
                 </Link>
@@ -276,8 +232,8 @@ export default function ReceiptPage() {
           <footer className="footer">
             <div>
               <p>
-                RepairLoop is a hackathon prototype. Dell is a trademark of Dell
-                Inc.; RepairLoop is not affiliated with or endorsed by Dell.
+                RepairLoop is a hackathon prototype. Dell and Lenovo are trademarks of their respective owners; RepairLoop is
+                not affiliated with or endorsed by either company.
               </p>
               <div className="footer-links">
                 <Link href="/privacy">Privacy</Link>

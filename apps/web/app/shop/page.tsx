@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiBaseUrl } from "../lib/api";
 
 type Extraction = {
@@ -27,6 +27,10 @@ type ShopQuote = {
   sourceUrl: string | null;
   sellerUrl: string | null;
   fitmentNote: string;
+  availability: "reported_in_stock" | "reported_out_of_stock" | "unknown";
+  availabilityCheckedAt: string | null;
+  availabilityNote: string;
+  availabilitySourceUrl: string | null;
   verifiedAt: string | null;
 };
 
@@ -103,9 +107,30 @@ export default function ShopPage() {
   const [reviewPart, setReviewPart] = useState("");
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
   const [checkoutLink, setCheckoutLink] = useState<string | null>(null);
+  const [aiConsent, setAiConsent] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("repairloop.shop.queue.v1");
+      if (stored) setQueue(JSON.parse(stored) as RepairCase[]);
+    } catch {
+      setQueue([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        "repairloop.shop.queue.v1",
+        JSON.stringify(queue)
+      );
+    } catch {
+      setQueue([]);
+    }
+  }, [queue]);
 
   const runIntake = async () => {
-    if (!text.trim()) return;
+    if (!text.trim() || !aiConsent) return;
     setDrafting(true);
     setError(null);
     setDraft(null);
@@ -144,7 +169,7 @@ export default function ShopPage() {
   };
 
   const recheck = async () => {
-    if (!draft) return;
+    if (!draft || !aiConsent) return;
     setDrafting(true);
     setError(null);
     setReviewConfirmed(false);
@@ -189,6 +214,12 @@ export default function ShopPage() {
 
   const addToQueue = async () => {
     if (!draft?.quote || !draft.match.model) return;
+    if (draft.quote.availability === "reported_out_of_stock") {
+      setError(
+        "The named seller reports this part out of stock. Fitment is verified; do not promise a purchasable quote."
+      );
+      return;
+    }
     setError(null);
 
     try {
@@ -299,19 +330,31 @@ export default function ShopPage() {
                   value={text}
                   onChange={(event) => setText(event.target.value)}
                   rows={5}
-                  placeholder="Example: Customer brought in a Dell Latitude 5410. The battery label says R8D7N; it dies after 20 minutes."
+                  placeholder="Example: Customer brought in a Dell Latitude 5400. The battery label says X77XY; it dies after 20 minutes."
                 />
                 <small>
                   Do not paste serial numbers, names, addresses, or payment
                   data. The description is treated as untrusted input.
                 </small>
               </label>
+              <label className="consent-row">
+                <input
+                  type="checkbox"
+                  checked={aiConsent}
+                  onChange={(event) => setAiConsent(event.target.checked)}
+                />
+                <span>
+                  This request is sent to Gemini for extraction. The free tier
+                  may use content to improve Google products; do not paste
+                  personal or payment data.
+                </span>
+              </label>
               <div className="button-row">
                 <button
                   className="button primary"
                   type="button"
                   onClick={() => void runIntake()}
-                  disabled={drafting || !text.trim()}
+                  disabled={drafting || !text.trim() || !aiConsent}
                 >
                   {drafting ? "Drafting…" : "Draft verified quote"}
                 </button>
@@ -390,13 +433,14 @@ export default function ShopPage() {
                       className="button ghost"
                       type="button"
                       onClick={() => void recheck()}
-                      disabled={drafting || !text.trim()}
+                      disabled={drafting || !text.trim() || !aiConsent}
                     >
                       {drafting ? "Re-checking…" : "Re-check catalog"}
                     </button>
                   </div>
                   <label className="consent-row">
                     <input
+                      id="shop-review-confirmed"
                       type="checkbox"
                       checked={reviewConfirmed}
                       onChange={(event) =>
@@ -431,6 +475,19 @@ export default function ShopPage() {
                         {draft.quote.seller}
                       </p>
                       <p className="option-reason">{draft.quote.fitmentNote}</p>
+                      <p className="hint">
+                        <strong>
+                          {draft.quote.availability === "reported_in_stock"
+                            ? "Seller reported in stock"
+                            : draft.quote.availability ===
+                                "reported_out_of_stock"
+                              ? "Seller reported out of stock"
+                              : "Seller stock not verified"}
+                        </strong>
+                        {draft.quote.availabilityNote
+                          ? ` · ${draft.quote.availabilityNote}`
+                          : ""}
+                      </p>
                       {draft.quote.sourcePublisher ? (
                         <div className="source-line">
                           <span>
@@ -447,7 +504,9 @@ export default function ShopPage() {
                               draft.quote.sourcePublisher
                             )}
                           </span>
-                          {draft.quote.sellerUrl ? (
+                          {draft.quote.sellerUrl &&
+                          draft.quote.availability !==
+                            "reported_out_of_stock" ? (
                             <a
                               className="source-link"
                               href={draft.quote.sellerUrl}
@@ -464,11 +523,19 @@ export default function ShopPage() {
                           className="button primary"
                           type="button"
                           onClick={() => void addToQueue()}
-                          disabled={added || !reviewConfirmed}
+                          disabled={
+                            added ||
+                            !reviewConfirmed ||
+                            draft.quote.availability ===
+                              "reported_out_of_stock"
+                          }
                         >
                           {added
                             ? "Added to shop queue"
-                            : "Approve and add to queue"}
+                            : draft.quote.availability ===
+                                "reported_out_of_stock"
+                              ? "Seller reports out of stock"
+                              : "Confirm review and add to queue"}
                         </button>
                       </div>
                     </article>
@@ -513,13 +580,14 @@ export default function ShopPage() {
             <section className="flow-card" aria-labelledby="queue-heading">
               <div className="flow-card-head">
                 <span className="pill">Shop queue</span>
-                <h2 id="queue-heading">Approved quotes</h2>
+                <h2 id="queue-heading">Reviewed quotes</h2>
               </div>
               <p className="hint">
-                Quotes are human-approved before they reach the queue. This
-                queue is local to the browser for the demo; there is no public
-                shop-queue endpoint. Payment and seller handoff are external;
-                no inventory or fulfillment is claimed.
+                Quotes are reviewed by the shop user in this browser before
+                they reach the queue. This queue is stored in this browser for
+                the demo; there is no public shop-queue endpoint or server-side
+                shop identity. Payment and seller handoff are external; no
+                inventory or fulfillment is claimed.
               </p>
 
               {queue.length === 0 ? (

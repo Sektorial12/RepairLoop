@@ -37,6 +37,42 @@ describe("catalog matcher", () => {
     expect(result.exact?.part.partNumber).toBe("4GVMP");
   });
 
+  it("does not treat P92G as a Latitude 5400 alias", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "P92G",
+      installedPartNumber: "X77XY",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("unsupported_model");
+  });
+
+  it("does not treat bare 7590 as the Inspiron 7590 2-in-1", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "7590",
+      installedPartNumber: "X77XY",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("unsupported_model");
+  });
+
+  it("does not map a non-2-in-1 Inspiron 7590 to the 2-in-1 row", () => {
+    const result = matchCatalog(catalogData, {
+      modelQuery: "Dell Inspiron 7590",
+      installedPartNumber: "X77XY",
+      designCapacityMwh: 68005,
+      fullChargeCapacityMwh: 46907
+    });
+
+    expect(result.status).toBe("no_match");
+    expect(result.reasons).toContain("unsupported_model");
+  });
+
   it("refuses an ambiguous model query instead of selecting the first model", () => {
     const result = matchCatalog(catalogData, {
       modelQuery: "Dell",

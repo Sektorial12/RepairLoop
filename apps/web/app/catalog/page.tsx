@@ -19,6 +19,21 @@ type CatalogPart = {
   sourceId: string;
   verifiedAt: string | null;
   notes: string;
+  availability?: "reported_in_stock" | "reported_out_of_stock" | "unknown";
+  availabilityCheckedAt?: string | null;
+  availabilityNote?: string | null;
+  availabilitySourceUrl?: string | null;
+};
+
+type CatalogCompatibility = {
+  id: string;
+  modelId: string;
+  partId: string;
+  fitmentNote: string;
+  sourceId: string;
+  evidenceQuote: string | null;
+  status: string;
+  verifiedAt: string | null;
 };
 
 type CatalogSource = {
@@ -35,11 +50,13 @@ type CatalogModel = {
   brand: string;
   family: string;
   model: string;
+  sourceId?: string | null;
 };
 
 type CatalogData = {
   models: CatalogModel[];
   parts: CatalogPart[];
+  compatibility: CatalogCompatibility[];
   sources: CatalogSource[];
 };
 
@@ -102,9 +119,19 @@ export default function CatalogPage() {
 
   const verified = data?.parts.filter((part) => part.status === "verified") ?? [];
   const excluded = data?.parts.filter((part) => part.status !== "verified") ?? [];
-  const usedSourceIds = new Set(data?.parts.map((part) => part.sourceId));
-  const sources =
-    data?.sources.filter((source) => usedSourceIds.has(source.id)) ?? [];
+  const sources = data?.sources ?? [];
+  const modelFor = (modelId: string) =>
+    data?.models.find((model) => model.id === modelId);
+  const compatibilityFor = (partId: string) =>
+    (data?.compatibility ?? []).filter((row) => row.partId === partId);
+  const availabilityLabel = (
+    status: CatalogPart["availability"] = "unknown"
+  ) =>
+    status === "reported_in_stock"
+      ? "Seller reported in stock"
+      : status === "reported_out_of_stock"
+        ? "Seller reported out of stock"
+        : "Seller stock not verified";
 
   return (
     <main>
@@ -132,8 +159,10 @@ export default function CatalogPage() {
               <h1 className="check-title">No source, no recommendation.</h1>
               <p className="lede">
                 Every part below has a catalog source, a fitment note, and a
-                verified-at date. The 15.2V 68Wh variant is shown only to
-                explain why it is excluded.
+                verified-at date. Model aliases and fitment rows have their own
+                sources. Seller stock/price are point-in-time reports, not live
+                inventory. The 15.2V 68Wh variant is shown only to explain why
+                it is excluded.
               </p>
             </div>
             <div className="check-actions">
@@ -152,11 +181,28 @@ export default function CatalogPage() {
               <>
                 <span className="meta-label">Supported models ({data.models.length})</span>
                 <div className="catalog-models">
-                  {data.models.map((model) => (
-                    <span className="catalog-model" key={model.id}>
-                      {model.model}
-                    </span>
-                  ))}
+                  {data.models.map((model) => {
+                    const modelSource = model.sourceId
+                      ? sourceFor(model.sourceId)
+                      : undefined;
+                    return (
+                      <span className="catalog-model" key={model.id}>
+                        {model.model}
+                        {modelSource ? (
+                          <a
+                            className="source-link"
+                            href={modelSource.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={`Model source: ${modelSource.publisher}`}
+                          >
+                            {" "}
+                            source ↗
+                          </a>
+                        ) : null}
+                      </span>
+                    );
+                  })}
                 </div>
 
                 <div className="catalog-section">
@@ -182,7 +228,39 @@ export default function CatalogPage() {
                             {money(part.priceDemo, part.currency)}{" "}
                             <span className="hint">demo price</span>
                           </p>
+                          <p className="hint">
+                            <strong>{availabilityLabel(part.availability)}</strong>
+                            {part.availabilityNote
+                              ? ` · ${part.availabilityNote}`
+                              : ""}
+                          </p>
                           <p className="catalog-notes">{part.notes}</p>
+                          <div className="fitment-list">
+                            <span className="meta-label">Fitment evidence</span>
+                            {compatibilityFor(part.id).map((row) => {
+                              const compatibilitySource = sourceFor(row.sourceId);
+                              const model = modelFor(row.modelId);
+                              return (
+                                <p className="hint" key={row.id}>
+                                  <strong>{model?.model ?? row.modelId}</strong>:{" "}
+                                  {row.fitmentNote}{" "}
+                                  {compatibilitySource ? (
+                                    <a
+                                      className="source-link"
+                                      href={compatibilitySource.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      {compatibilitySource.publisher} ↗
+                                    </a>
+                                  ) : null}
+                                  {row.evidenceQuote ? (
+                                    <span> “{row.evidenceQuote}”</span>
+                                  ) : null}
+                                </p>
+                              );
+                            })}
+                          </div>
                           <div className="source-line">
                             <span>
                               {source ? (
@@ -230,6 +308,12 @@ export default function CatalogPage() {
                               {part.capacityWh}Wh · {part.voltage}V ·{" "}
                               {part.cells}-cell
                             </p>
+                            <p className="hint">
+                              <strong>{availabilityLabel(part.availability)}</strong>
+                              {part.availabilityNote
+                                ? ` · ${part.availabilityNote}`
+                                : ""}
+                            </p>
                             <p className="catalog-notes">{part.notes}</p>
                             <div className="source-line">
                               <span>
@@ -257,6 +341,10 @@ export default function CatalogPage() {
 
                 <div className="catalog-section">
                   <h2>Source freshness</h2>
+                  <p className="hint">
+                    All catalog, model, fitment, and health references are shown;
+                    a source used by one part is not evidence for another.
+                  </p>
                   <div className="catalog-source-list">
                     {sources.map((source) => (
                       <div className="catalog-source-item" key={source.id}>
@@ -302,8 +390,8 @@ export default function CatalogPage() {
             <div>
               <p>
                 RepairLoop is a hackathon prototype. Prices are sandbox demo
-                values. Dell is a trademark of Dell Inc.; RepairLoop is not
-                affiliated with or endorsed by Dell.
+                values. Dell and Lenovo are trademarks of their respective owners; RepairLoop is
+                not affiliated with or endorsed by either company.
               </p>
               <div className="footer-links">
                 <Link href="/privacy">Privacy</Link>

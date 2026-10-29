@@ -42,6 +42,10 @@ const EnvSchema = z.object({
     .default("https://api-m.sandbox.paypal.com"),
   PAYPAL_WEBHOOK_ID: z.string().min(1).optional(),
   PAYPAL_LIVE_ENABLED: boolFromStringFalse,
+  RECEIPT_TOKEN_SECRET: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().min(16).optional()
+  ),
   DEMO_MODE: boolFromString,
   LOG_LEVEL: z.string().default("info")
 });

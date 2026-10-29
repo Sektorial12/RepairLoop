@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { partAvailability } from "../catalog/data.js";
 import { loadCatalog } from "../catalog/load.js";
 import { matchCatalog } from "../catalog/matcher.js";
 import { db } from "../db/client.js";
@@ -80,6 +81,13 @@ export async function repairCaseRoutes(
               seller: row.seller,
               priceDemo: row.priceDemo,
               currency: row.currency,
+              availability:
+                partAvailability[row.selectedPartId ?? ""]?.status ?? "unknown",
+              availabilityCheckedAt:
+                partAvailability[row.selectedPartId ?? ""]?.checkedAt ?? null,
+              availabilityNote:
+                partAvailability[row.selectedPartId ?? ""]?.note ??
+                "Seller availability was not checked.",
               sourcePublisher: row.sourcePublisher,
               sourceUrl: row.sourceUrl
             }

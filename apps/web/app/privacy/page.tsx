@@ -19,8 +19,9 @@ export default function PrivacyPage() {
       <h2>What is collected</h2>
       <ul>
         <li>
-          Battery-report and label images you choose to upload, sent to Gemini
-          for extraction.
+          Battery-report and label images you choose to upload, plus free-text
+          symptom descriptions and shop customer requests sent to Gemini for
+          extraction.
         </li>
         <li>
           Extracted or manually entered values needed for the repair case:
@@ -45,20 +46,24 @@ export default function PrivacyPage() {
 
       <h2>Third parties</h2>
       <p>
-        Images are processed by Gemini; the free tier may use submitted content
-        to improve Google products. Payments run in PayPal Sandbox. The app is
-        hosted on Render and Vercel, with a Neon PostgreSQL database. Do not
-        upload serial numbers, service tags, names, addresses, or other personal
-        data. Crop and redact before uploading.
+        Images and text are processed by Gemini; the free tier may use submitted
+        content to improve Google products. Images are re-encoded server-side to
+        strip EXIF/GPS/device metadata before the Gemini request, but the
+        browser preview can retain the local file. Payments run in PayPal
+        Sandbox. The app is hosted on Render and Vercel, with a Neon PostgreSQL
+        database. Do not upload serial numbers, service tags, names, addresses,
+        or other personal data. Crop and redact before uploading. The consumer
+        and shop forms require AI consent before sending content.
       </p>
 
       <h2>Retention and contact</h2>
       <p>
         Extracted fields, repair cases, orders, and payment-event metadata may
-        persist for the prototype. The receipt page is public to anyone with its
-        order link; do not share a link containing sensitive information. There
-        is no self-service deletion flow; contact the maintainer through the
-        public GitHub repository issue tracker for a prototype data request.
+        persist for the prototype. The receipt page is public and read-only to
+        anyone with its order link; capture retries are not exposed there. Do
+        not share a link containing sensitive information. There is no
+        self-service deletion flow; contact the maintainer through the public
+        GitHub repository issue tracker for a prototype data request.
       </p>
 
       <p>

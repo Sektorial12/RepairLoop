@@ -1,4 +1,4 @@
-import type { CatalogData } from "./types.js";
+import type { CatalogData, PartAvailabilityStatus } from "./types.js";
 
 const ACCESSED_AT = new Date("2026-10-26T12:00:00.000Z");
 const VERIFIED_AT = new Date("2026-10-26T12:00:00.000Z");
@@ -132,8 +132,8 @@ const models: CatalogData["models"] = [
     brand: "Dell",
     family: "Latitude",
     model: "Latitude 5400",
-    aliases: ["Latitude 5400", "Dell Latitude 5400", "P98G", "P98G001", "P92G"],
-    regulatoryModel: "P98G / P98G001 / P92G"
+    aliases: ["Latitude 5400", "Dell Latitude 5400", "P98G", "P98G001"],
+    regulatoryModel: "P98G / P98G001"
   },
   {
     id: "dell-latitude-5401",
@@ -228,7 +228,7 @@ const models: CatalogData["models"] = [
     brand: "Dell",
     family: "Inspiron",
     model: "Inspiron 7590 2-in-1",
-    aliases: ["Inspiron 7590 2-in-1", "Inspiron 15 7590 2-in-1", "Dell Inspiron 7590", "7590"],
+    aliases: ["Inspiron 7590 2-in-1", "Inspiron 15 7590 2-in-1"],
     regulatoryModel: null
   },
   {
@@ -839,6 +839,67 @@ const symptomRules: CatalogData["symptomRules"] = [
     sourceId: "src-dell-manual"
   }
 ];
+
+export const modelSourceIds: Record<string, string> = {
+  "dell-latitude-5400": "src-dell-spec",
+  "dell-latitude-5401": "src-parts-people-1v1xf",
+  "dell-latitude-5500": "src-parts-people-1v1xf",
+  "dell-precision-3540": "src-parts-people-1v1xf",
+  "dell-latitude-5410": "src-parts-people-1v1xf",
+  "dell-latitude-5411": "src-parts-people-1v1xf",
+  "dell-latitude-5501": "src-parts-people-1v1xf",
+  "dell-latitude-5510": "src-parts-people-1v1xf",
+  "dell-latitude-5511": "src-parts-people-1v1xf",
+  "dell-precision-3541": "src-parts-people-1v1xf",
+  "dell-precision-3550": "src-parts-people-1v1xf",
+  "dell-precision-3551": "src-parts-people-1v1xf",
+  "dell-inspiron-7590-2in1": "src-parts-people-4gvmp",
+  "dell-inspiron-7591-2in1": "src-parts-people-4gvmp",
+  "dell-inspiron-7791-2in1": "src-parts-people-4gvmp",
+  "dell-latitude-5400-chromebook": "src-parts-people-4gvmp",
+  "lenovo-thinkpad-t480s": "src-lenovo-t480s-frubom"
+};
+
+export const partAvailability: Record<
+  string,
+  {
+    status: PartAvailabilityStatus;
+    checkedAt: Date | null;
+    note: string;
+    sourceUrl?: string;
+  }
+> = {
+  "part-4gvmp-68wh": {
+    status: "reported_in_stock",
+    checkedAt: new Date("2026-10-28T12:00:00.000Z"),
+    note: "Parts-People showed the 4GVMP listing in stock at $109.95 on 2026-10-28; this is a point-in-time seller report, not live inventory.",
+    sourceUrl: "https://www.parts-people.com/index.php?action=item&id=30351"
+  },
+  "part-1v1xf-42wh": {
+    status: "reported_in_stock",
+    checkedAt: new Date("2026-10-28T12:00:00.000Z"),
+    note: "Parts-People showed the 1V1XF listing at $59.95 on 2026-10-28; stock and price are not live.",
+    sourceUrl: "https://www.parts-people.com/index.php?action=item&id=30353"
+  },
+  "part-r8d7n-51wh": {
+    status: "reported_out_of_stock",
+    checkedAt: new Date("2026-10-28T12:00:00.000Z"),
+    note: "Parts-People showed the R8D7N listing Out Of Stock (used $49.95) on 2026-10-28. Fitment is verified; availability is not.",
+    sourceUrl: "https://www.parts-people.com/index.php?action=item&id=30356"
+  },
+  "part-3hwpp-68wh-15v": {
+    status: "unknown",
+    checkedAt: null,
+    note: "Excluded by voltage; seller availability is not checked.",
+    sourceUrl: "https://www.ifixit.com/Parts/Dell_Latitude_5400/Batteries"
+  },
+  "part-01av478-57wh": {
+    status: "unknown",
+    checkedAt: new Date("2026-10-26T12:00:00.000Z"),
+    note: "Lenovo/iFixit sources verify the 57Wh family; seller availability is not live.",
+    sourceUrl: "https://www.ifixit.com/products/lenovo-thinkpad-t480s-battery"
+  }
+};
 
 export const catalogData: CatalogData = {
   sources,

@@ -23,8 +23,10 @@ export default function TermsPage() {
           No part is sold, reserved, shipped, installed, returned, or warranted.
         </li>
         <li>
-          Prices, sellers, stock, and availability are demo values and are not
-          live. The catalog does not promise availability.
+          Prices, sellers, stock, and availability are demo or point-in-time
+          seller reports, not live inventory. The catalog verifies fitment, not
+          that a part is currently purchasable. The app has no seller
+          integration, authentication, fulfillment, returns, or warranty flow.
         </li>
         <li>
           Do not use real payment credentials, a real PayPal account, or personal
@@ -53,8 +55,8 @@ export default function TermsPage() {
 
       <h2>Intellectual property and changes</h2>
       <p>
-        Dell is a trademark of Dell Inc. RepairLoop is not affiliated with or
-        endorsed by Dell. Source links remain the property of their publishers.
+        Dell and Lenovo are trademarks of their respective owners. RepairLoop is
+        not affiliated with or endorsed by either company. Source links remain the property of their publishers.
         The prototype and these terms may change without notice. Contact the
         maintainer through the public GitHub repository for questions.
       </p>

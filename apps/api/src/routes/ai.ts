@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
 import { z } from "zod";
+import sharp from "sharp";
 import { env } from "../config.js";
 import {
   AiError,
@@ -60,10 +61,10 @@ const ExplainBodySchema = z
     message: "modelId or modelQuery is required"
   });
 
-function parseImage(input: {
+async function parseImage(input: {
   imageBase64: string;
   mimeType: (typeof ALLOWED_IMAGE_TYPES)[number];
-}): ImageInput {
+}): Promise<ImageInput> {
   const dataUrl = input.imageBase64.match(
     /^data:([^;]+);base64,([\s\S]+)$/
   );
@@ -114,7 +115,24 @@ function parseImage(input: {
     );
   }
 
-  return { base64, mimeType };
+  let stripped: Buffer;
+  try {
+    const pipeline = sharp(buffer, { failOn: "error" }).rotate();
+    stripped =
+      mimeType === "image/jpeg"
+        ? await pipeline.jpeg({ quality: 90 }).toBuffer()
+        : mimeType === "image/webp"
+          ? await pipeline.webp({ quality: 90 }).toBuffer()
+          : await pipeline.png().toBuffer();
+  } catch {
+    throw new AiError("invalid_output", "Could not decode the image");
+  }
+
+  if (stripped.length > 6_000_000) {
+    throw new AiError("invalid_output", "Image is too large after cleaning");
+  }
+
+  return { base64: stripped.toString("base64"), mimeType };
 }
 
 function sendAiError(
@@ -170,7 +188,7 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
     }
 
     try {
-      const image = parseImage(parsed.data);
+      const image = await parseImage(parsed.data);
       const startedAt = Date.now();
       const extraction = await generateJson({
         prompt: BATTERY_REPORT_PROMPT,
@@ -216,7 +234,7 @@ export async function aiRoutes(app: FastifyInstance): Promise<void> {
     }
 
     try {
-      const image = parseImage(parsed.data);
+      const image = await parseImage(parsed.data);
       const startedAt = Date.now();
       const extraction = await generateJson({
         prompt: LABEL_PROMPT,
@@ -309,6 +327,12 @@ ${JSON.stringify(parsed.data.text)}`,
               sourceUrl: source?.url ?? null,
               sellerUrl,
               fitmentNote: exact.compatibility.fitmentNote,
+              availability: exact.part.availability ?? "unknown",
+              availabilityCheckedAt: exact.part.availabilityCheckedAt ?? null,
+              availabilityNote:
+                exact.part.availabilityNote ??
+                "Seller availability was not checked.",
+              availabilitySourceUrl: exact.part.availabilitySourceUrl ?? null,
               verifiedAt: exact.part.verifiedAt
             }
           : null;

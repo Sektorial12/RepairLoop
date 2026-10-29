@@ -11,7 +11,7 @@ export default function AiDisclosurePage() {
       updated="Prototype AI disclosure · last updated 28 October 2026."
     >
       <p>
-        RepairLoop uses a server-side Gemini model for extraction and grounded
+        RepairLoop uses a server-side Gemini model for extraction and source-cited
         explanation. The configured model name is intentionally not published in
         this repository. AI is a helper, not the authority.
       </p>
@@ -25,6 +25,10 @@ export default function AiDisclosurePage() {
         <li>
           Maps free-text symptoms to controlled tags, with a safety flag for
           damaged-battery descriptions.
+        </li>
+        <li>
+          Extracts device/part/symptom facts from a shop customer request for a
+          human-reviewed quote.
         </li>
         <li>
           Explains a catalog-selected part using only the cited catalog/source
@@ -42,12 +46,16 @@ export default function AiDisclosurePage() {
 
       <h2>Privacy and limits</h2>
       <p>
-        Images are sent to Gemini for extraction; the free tier may use
-        submitted content to improve Google products. Crop and redact serials,
-        service tags, and personal data. Do not upload payment credentials or
-        customer data. AI extraction can be wrong; the user confirms the fields,
-        and manual entry remains the fallback. The catalog and cited sources
-        remain authoritative.
+        Images and free-text symptom/shop text are sent to Gemini after the
+        user checks an AI-consent box; the free tier may use submitted content
+        to improve Google products. Images are re-encoded server-side to strip
+        EXIF/GPS/device metadata before the Gemini request, but the browser
+        preview can retain the local file. Crop and redact serials, service
+        tags, and personal data. Do not upload payment credentials or customer
+        data. AI extraction can be wrong; the user confirms the fields, and
+        manual entry remains the fallback. The catalog and cited sources remain
+        authoritative. The API’s “grounded” explanation check verifies the
+        cited URL, not the semantics of every sentence.
       </p>
 
       <p>

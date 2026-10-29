@@ -1,4 +1,8 @@
-import { catalogData } from "./data.js";
+import {
+  catalogData,
+  modelSourceIds,
+  partAvailability
+} from "./data.js";
 
 const MAX_SOURCE_AGE_DAYS = 180;
 const errors: string[] = [];
@@ -9,6 +13,10 @@ const sourceById = new Map(
 );
 const modelIds = new Set(catalogData.models.map((model) => model.id));
 const partIds = new Set(catalogData.parts.map((part) => part.id));
+const aliasOwners = new Map<string, string>();
+const normalizeAlias = (value: string): string =>
+  value.toLowerCase().replace(/[^a-z0-9]/g, "");
+const forbiddenAliases = new Set(["p92g", "7590"]);
 
 for (const source of catalogData.sources) {
   if (!source.publisher.trim()) {
@@ -33,6 +41,37 @@ for (const source of catalogData.sources) {
   }
 }
 
+for (const model of catalogData.models) {
+  const sourceId = modelSourceIds[model.id];
+  if (!sourceId) {
+    errors.push(`Model ${model.id} has no sourceId`);
+  } else if (!sourceIds.has(sourceId)) {
+    errors.push(`Model ${model.id} references missing source ${sourceId}`);
+  }
+
+  const aliases = [
+    model.model,
+    ...model.aliases,
+    ...(model.regulatoryModel ? model.regulatoryModel.split("/") : [])
+  ];
+  for (const alias of aliases) {
+    const normalized = normalizeAlias(alias);
+    if (!normalized) continue;
+    if (forbiddenAliases.has(normalized)) {
+      errors.push(
+        `Model ${model.id} uses unsafe or ambiguous alias ${alias}`
+      );
+    }
+    const owner = aliasOwners.get(normalized);
+    if (owner && owner !== model.id) {
+      errors.push(
+        `Alias collision: ${alias} maps to both ${owner} and ${model.id}`
+      );
+    }
+    aliasOwners.set(normalized, model.id);
+  }
+}
+
 for (const part of catalogData.parts) {
   if (!sourceIds.has(part.sourceId)) {
     errors.push(`Part ${part.id} references missing source ${part.sourceId}`);
@@ -42,6 +81,23 @@ for (const part of catalogData.parts) {
   }
   if (part.verifiedAt && part.verifiedAt.getTime() > Date.now()) {
     errors.push(`Verified part ${part.id} has a future verifiedAt`);
+  }
+
+  const availability = partAvailability[part.id];
+  if (!availability) {
+    errors.push(`Part ${part.id} has no availability record`);
+  } else if (
+    !["reported_in_stock", "reported_out_of_stock", "unknown"].includes(
+      availability.status
+    )
+  ) {
+    errors.push(`Part ${part.id} has an invalid availability status`);
+  }
+}
+
+for (const partId of Object.keys(partAvailability)) {
+  if (!partIds.has(partId)) {
+    errors.push(`Availability references missing part ${partId}`);
   }
 }
 

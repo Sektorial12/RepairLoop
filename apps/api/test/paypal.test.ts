@@ -121,6 +121,38 @@ describe("PayPal client", () => {
     );
   });
 
+  it("rejects a webhook with missing signature headers", async () => {
+    vi.stubEnv("PAYPAL_WEBHOOK_ID", "test-webhook");
+    vi.resetModules();
+    const { verifyPayPalWebhook } = await import("../src/paypal/client.js");
+
+    await expect(
+      verifyPayPalWebhook({
+        headers: {},
+        rawBody: Buffer.from("{}")
+      })
+    ).resolves.toBe(false);
+  });
+
+  it("rejects a stale webhook transmission before certificate fetch", async () => {
+    vi.stubEnv("PAYPAL_WEBHOOK_ID", "test-webhook");
+    vi.resetModules();
+    const { verifyPayPalWebhook } = await import("../src/paypal/client.js");
+    const oldTime = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+    await expect(
+      verifyPayPalWebhook({
+        headers: {
+          "paypal-transmission-id": "tx-1",
+          "paypal-transmission-time": oldTime,
+          "paypal-transmission-sig": "signature",
+          "paypal-cert-url": "https://api.paypal.com/cert.pem"
+        },
+        rawBody: Buffer.from("{}")
+      })
+    ).resolves.toBe(false);
+  });
+
   it("maps a PayPal network timeout to an upstream error", async () => {
     const timeoutError = Object.assign(new Error("timed out"), {
       name: "TimeoutError"
