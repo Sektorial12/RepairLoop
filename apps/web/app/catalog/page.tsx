@@ -161,11 +161,12 @@ export default function CatalogPage() {
               <p className="eyebrow">Source-linked catalog</p>
               <h1 className="check-title">No source, no recommendation.</h1>
               <p className="lede">
-                Every part below has a catalog source, a fitment note, and a
-                verified-at date. Model aliases and fitment rows have their own
-                sources. Seller stock/price are point-in-time reports, not live
-                inventory. The 15.2V 68Wh variant is shown only to explain why
-                it is excluded.
+                Every verified part below has a catalog source, a fitment
+                note, and a verified-at date; excluded variants are labelled
+                with their evidence. Model aliases and fitment rows have their
+                own sources. Seller stock/price are point-in-time reports, not
+                live inventory. The 15.2V 68Wh variant is shown only to explain
+                why it is excluded.
               </p>
             </div>
             <div className="check-actions">

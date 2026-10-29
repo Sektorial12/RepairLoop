@@ -162,7 +162,7 @@ test("a shop quote opens the buyer checkout flow", async ({ page }) => {
 
   await page.goto("/check?case=case-test");
 
-  await expect(page.getByText(/Shop-approved quote/)).toBeVisible();
+  await expect(page.getByText(/Shop-reviewed quote/)).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Verified replacement" })
   ).toBeVisible({ timeout: 20_000 });

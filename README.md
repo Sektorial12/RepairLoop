@@ -66,8 +66,9 @@ The API loads the repository-root `.env` first, then `apps/api/.env`. No secrets
 - Safety stop: `https://repair-loop-nu.vercel.app/check?demo=safety`
 - Real completed Sandbox receipt: `https://repair-loop-nu.vercel.app/receipt/7LS832802T701580V`
 - Catalog: `https://repair-loop-nu.vercel.app/catalog`
+- Shop matrix: `https://repair-loop-nu.vercel.app/shop/catalog`
 
-PayPal is Sandbox-only. The submission demo video shows the full approval, capture, and receipt flow. You can also complete the hosted flow with your own PayPal Sandbox buyer account; the app does not publish buyer credentials. Do not use a real PayPal account. The catalog shows demo prices and point-in-time seller-stock reports, not live stock or shipping.
+PayPal is Sandbox-only. The submission demo video is the judge completion path and must show the full approval, capture, and receipt flow; record it before submitting and add the URL to the Devpost. You can also complete the hosted flow with your own PayPal Sandbox buyer account; the app does not publish buyer credentials. Do not use a real PayPal account. The catalog shows demo prices and point-in-time seller-stock reports, not live stock or shipping.
 
 **Functional demo without buying anything:** use the hosted `?demo=1` case, choose the in-stock `4GVMP` exact option, review it, and use a PayPal Sandbox buyer to approve the sandbox payment. `R8D7N` is shown as fitment-verified but seller-reported out of stock, so its checkout is disabled. Existing completed receipt: the link above.
 
@@ -131,6 +132,6 @@ The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the de
 - Sandbox demo only; this is not a real parts store. There is no general authentication, seller integration, inventory feed, fulfillment, returns, or warranty; receipts are public read-only links and capture retries require a per-order capability token.
 - Prototype privacy, terms, and AI disclosure are linked in the app footer.
 - The shop matrix is a read-only reference; it never creates a case or order. AG Grid Community is used only on `/shop/catalog`.
-- GitHub Actions checks the live API readiness, catalog, and hosted pages every 30 minutes; a failing run is the alerting signal.
+- GitHub Actions checks the live API readiness, catalog, and hosted pages every 30 minutes; a failing run is visible in GitHub, but there is no Sentry/paging integration.
 
 Dell and Lenovo are trademarks of their respective owners. RepairLoop is not affiliated with or endorsed by either company.

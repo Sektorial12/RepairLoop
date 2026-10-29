@@ -208,7 +208,7 @@ async function evalExplanation(): Promise<void> {
   });
 
   check(
-    "explain: grounded",
+    "explain: source-cited URL",
     data.grounded && data.explanation.length >= 20,
     data.explanation.slice(0, 80)
   );

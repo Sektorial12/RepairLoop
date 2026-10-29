@@ -13,8 +13,8 @@
 2. **Label extraction:** read a model/battery label photo and return:
    - brand, model, regulatory model, part number, capacity, voltage, confidence, warnings; serials are not requested or stored
 3. **Symptom structuring:** map free text to controlled symptom tags and one optional clarifying question
-4. **Grounded explanation:** explain why a catalog-verified part fits, using only retrieved evidence, with a citation
-5. **Shop intake:** extract explicit device/part/symptom facts from a customer message, then let the deterministic catalog draft a human-approved quote
+4. **Source-cited explanation:** explain why a catalog-verified part fits, using only retrieved evidence, with a citation. The API field is named `grounded`, but it only verifies that the cited URL matches the catalog source.
+5. **Shop intake:** extract explicit device/part/symptom facts from a customer message, then let the deterministic catalog draft a human-reviewed quote
 
 ## What AI must never do
 
@@ -59,7 +59,7 @@ Targets: top-1 exact ≥80%, top-3 ≥95%, zero unsupported fitment claims, no-m
 - **Battery report:** synthetic image containing the real values (`68,005 / 46,907 mWh`, `X77XY`) returned the exact model, part, capacities, 69% health, and confidence 0.95.
 - **Label:** synthetic label returned `DELL`, `Latitude 5400`, `P98G`, `X77XY`, 68Wh, 7.6V, and confidence 0.95.
 - **Synthetic harness (2026-10-27):** 25/25 checks passed against the deployed API: 5 report checks, 7 label checks, 10 symptom cases, and 3 source-cited explanation checks. One transient Render 502 was retried successfully. This is not a substitute for the 20–30-image target.
-- **Limitations:** the full 20–30 image set and adversarial/prompt-injection evaluation remain pending. The synthetic harness and a redacted real-media spot check are documented; manual entry remains the fallback. “Grounded” in the API means the cited source URL matches the catalog source; it is not semantic verification of every sentence.
+- **Limitations:** the full 20–30 image set and adversarial/prompt-injection evaluation remain pending. The synthetic harness is reproducible; no real redacted media is committed to the repository. Use the optional `EVAL_REPORT_IMAGE` / `EVAL_LABEL_IMAGE` paths for a local spot check. Manual entry remains the fallback. “Grounded” in the API means the cited source URL matches the catalog source; it is not semantic verification of every sentence.
 
 Run the reproducible harness (uses the deployed API and synthetic fixtures):
 
@@ -77,5 +77,5 @@ EVAL_BASE_URL=https://repairloop-api.onrender.com npm run eval:ai -w @repairloop
 - Crop to the “Installed batteries” section, redact serial numbers/service tags, and avoid personal data.
 - Do not store the full uploaded image or report; store only the extracted fields needed for the repair case.
 - Do not send payment credentials, card data, or customer data to the model.
-- Symptom and shop text are wrapped as JSON untrusted data and the wrapper is unit-tested; adversarial image/prompt-injection model behavior remains pending. Image uploads are re-encoded server-side to strip metadata, and the consumer/shop UI requires AI consent before sending text or images.
+- Symptom and shop text are wrapped as JSON untrusted data and the wrapper is unit-tested; adversarial image/prompt-injection model behavior remains pending. Image uploads are re-encoded server-side to strip metadata. The consumer/shop UI requires AI consent before sending text, images, or explanation case details.
 - The API key stays server-side; never expose it in the browser or repository.

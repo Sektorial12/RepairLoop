@@ -22,7 +22,7 @@
 ## API
 
 - CORS allowlist only the deployed frontend origins.
-- Rate-limit all endpoints globally by Cloudflare client IP (`CF-Connecting-IP`) or socket address, never client-supplied `X-Forwarded-For`; apply a stricter AI limit; exempt PayPal webhooks because signature verification is the gate.
+- Rate-limit by socket address by default. Set `TRUST_CLOUDFLARE=true` only when Cloudflare is the sole ingress and the `CF-Connecting-IP` header cannot reach the API directly; never trust client-supplied `X-Forwarded-For`. Apply a stricter AI limit; exempt PayPal webhooks because signature verification is the gate.
 - Send Helmet-style API headers; the web app sends a full CSP (scripts, frames, images, connections, form-action, frame-ancestors), frame denial, referrer policy, permissions policy, and HSTS.
 - Deduplicate webhook events by event ID and reject unverified signatures.
 - Validate all request bodies with Zod.

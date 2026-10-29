@@ -908,7 +908,7 @@ export default function CheckPage() {
           symptomTags: item.symptomTags ?? []
         });
         setPaymentNotice(
-          "Shop-approved quote. Review the exact part and the PayPal total before approving."
+          "Shop-reviewed quote. Review the exact part and the PayPal total before approving."
         );
       } catch (caught) {
         if (!cancelled) {

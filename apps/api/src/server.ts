@@ -16,11 +16,14 @@ import { repairCaseRoutes } from "./routes/repair-cases.js";
 import { webhookRoutes } from "./routes/webhooks.js";
 
 function rateLimitKey(request: FastifyRequest): string {
-  // Cloudflare sets this header; do not trust client-supplied X-Forwarded-For.
-  const cf = request.headers["cf-connecting-ip"];
-  const value = Array.isArray(cf) ? cf[0] : cf;
-  if (typeof value === "string" && value.trim()) {
-    return `cf:${value.trim()}`;
+  // Trust the Cloudflare header only when Cloudflare is the sole ingress.
+  // The direct Render origin otherwise allows a caller to choose the key.
+  if (env.TRUST_CLOUDFLARE) {
+    const cf = request.headers["cf-connecting-ip"];
+    const value = Array.isArray(cf) ? cf[0] : cf;
+    if (typeof value === "string" && value.trim()) {
+      return `cf:${value.trim()}`;
+    }
   }
 
   return `socket:${request.socket.remoteAddress ?? "unknown"}`;
@@ -70,7 +73,7 @@ app.addContentTypeParser(
 app.get("/", async () => ({
   service: "repairloop-api",
   version: serviceVersion,
-  docs: "/health, /api/status, /api/models, /api/catalog, /api/match, /api/ai/health, /api/paypal/config"
+  docs: "/health, /live, /ready, /api/status, /api/models, /api/catalog, /api/match, /api/shop/intake, /api/extract/battery-report, /api/extract/label, /api/symptoms/parse, /api/explain, /api/repair-cases, /api/repair-cases/:id, /api/checkout/orders, /api/checkout/orders/:orderId/capture, /api/orders/:orderId, /api/ai/health, /api/paypal/config, /api/webhooks/paypal"
 }));
 
 await app.register(healthRoutes);

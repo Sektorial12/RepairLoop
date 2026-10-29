@@ -555,7 +555,7 @@ export default function ShopPage() {
                       <Link className="source-link" href={checkoutLink}>
                         this checkout link
                       </Link>{" "}
-                      with the customer. The link opens the shop-approved quote;
+                      with the customer. The link opens the shop-reviewed quote;
                       payment is still PayPal Sandbox.
                     </div>
                   ) : null}
@@ -599,7 +599,7 @@ export default function ShopPage() {
               </p>
 
               {queue.length === 0 ? (
-                <p className="hint">No approved quotes yet.</p>
+                <p className="hint">No reviewed quotes yet.</p>
               ) : (
                 <div className="shop-case-list">
                   {queue.map((item) => (
