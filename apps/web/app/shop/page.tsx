@@ -110,6 +110,11 @@ export default function ShopPage() {
   const [aiConsent, setAiConsent] = useState(false);
 
   useEffect(() => {
+    const intake = new URLSearchParams(window.location.search).get("intake");
+    if (intake) setText(intake);
+  }, []);
+
+  useEffect(() => {
     try {
       const stored = window.localStorage.getItem("repairloop.shop.queue.v1");
       if (stored) setQueue(JSON.parse(stored) as RepairCase[]);
@@ -297,6 +302,9 @@ export default function ShopPage() {
             </Link>
             <Link className="nav-link" href="/catalog">
               Catalog
+            </Link>
+            <Link className="nav-link" href="/shop/catalog">
+              Compatibility matrix
             </Link>
             <span className="badge">Shop mode</span>
           </div>

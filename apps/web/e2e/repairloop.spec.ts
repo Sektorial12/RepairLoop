@@ -48,6 +48,36 @@ test("catalog shows verified parts, the exclusion, and source freshness", async 
   await expect(page.getByText("Parts-People").first()).toBeVisible();
 });
 
+test("shop matrix filters, shows stock, and prefills a quote", async ({ page }) => {
+  await mockCatalog(page);
+  await page.goto("/shop/catalog");
+
+  await expect(
+    page.getByRole("heading", { name: "Source-linked compatibility matrix." })
+  ).toBeVisible();
+  await expect(page.getByText("4GVMP").first()).toBeVisible({
+    timeout: 20_000
+  });
+  await expect(page.getByText("R8D7N").first()).toBeVisible();
+
+  await page.getByLabel("Search compatibility").fill("R8D7N");
+  await expect(page.getByText("R8D7N").first()).toBeVisible();
+  await page.getByText("R8D7N").first().click();
+  await expect(page.getByText(/Seller reported out of stock/).first()).toBeVisible();
+  await expect(page.getByText("4GVMP")).toHaveCount(0);
+
+  await page.getByLabel("Search compatibility").fill("");
+  await page.getByText("4GVMP").first().click();
+  await expect(page.getByText("Fitment note")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Use in shop quote" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Use in shop quote" }).click();
+  await expect(page).toHaveURL(/\/shop\?intake=/);
+  await expect(page.getByLabel("Customer request")).toHaveValue(
+    /Dell Latitude 5400, installed part 4GVMP/
+  );
+});
+
 test("receipt survives a refresh and shows the verified capture", async ({
   page
 }) => {

@@ -148,6 +148,9 @@ export default function CatalogPage() {
             <Link className="nav-link" href="/shop">
               Shop mode
             </Link>
+            <Link className="nav-link" href="/shop/catalog">
+              Shop matrix
+            </Link>
             <span className="badge">Source-linked</span>
           </div>
         </nav>

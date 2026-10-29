@@ -10,7 +10,7 @@ RepairLoop turns a laptop battery report or label photo into a source-linked rep
 
 **Coverage:** 17 models with source-linked aliases and fitment rows across Dell Latitude/Precision/Inspiron and the Lenovo ThinkPad T480s, covering the shared Dell 42/51/68Wh families and the T480s 57Wh family. Unsupported or ambiguous models are refused and can be requested through the public issue tracker. `P92G` and bare `7590` are intentionally not aliases.
 
-**Shop mode:** `/shop` provides an AI-assisted intake pipeline (customer text → extracted facts → deterministic catalog match → human-reviewed quote) with a seller handoff and a shareable customer checkout link tied to the existing PayPal Sandbox flow. AI never chooses fitment or captures payment.
+**Shop mode:** `/shop` provides an AI-assisted intake pipeline (customer text → extracted facts → deterministic catalog match → human-reviewed quote) with a seller handoff and a shareable customer checkout link tied to the existing PayPal Sandbox flow. `/shop/catalog` adds an AG Grid source-linked compatibility matrix for shop reference. AI never chooses fitment or captures payment.
 
 ## Why this exists
 
@@ -29,6 +29,7 @@ Dell lists three battery capacities for the Latitude 5400 — 42Wh, 51Wh, and 68
 - **Database:** Neon PostgreSQL + Drizzle ORM
 - **AI:** Gemini (configured server-side), structured JSON, manual fallback
 - **Payments:** PayPal Orders v2 + JavaScript SDK (v5 Buttons), Sandbox only
+- **Shop reference grid:** AG Grid Community 36 (`ag-grid-react`)
 - **Repo:** npm workspaces at the repository root
 
 ## Quick start
@@ -97,7 +98,7 @@ npm test                 # 35 API, catalog, webhook, token, and PayPal tests
 npm run typecheck
 npm run build
 npx playwright install chromium
-npm run test:e2e         # 16 browser tests: desktop + mobile Chromium; WebKit mobile in CI
+npm run test:e2e         # 17 browser tests: desktop + mobile Chromium; WebKit mobile in CI
 ```
 
 The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the deployed API.
@@ -129,6 +130,7 @@ The AI evaluation harness is documented in `AI_USAGE.md`; it runs against the de
 - No secrets, card data, or personal data in the repository.
 - Sandbox demo only; this is not a real parts store. There is no general authentication, seller integration, inventory feed, fulfillment, returns, or warranty; receipts are public read-only links and capture retries require a per-order capability token.
 - Prototype privacy, terms, and AI disclosure are linked in the app footer.
+- The shop matrix is a read-only reference; it never creates a case or order. AG Grid Community is used only on `/shop/catalog`.
 - GitHub Actions checks the live API readiness, catalog, and hosted pages every 30 minutes; a failing run is the alerting signal.
 
 Dell and Lenovo are trademarks of their respective owners. RepairLoop is not affiliated with or endorsed by either company.
