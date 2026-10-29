@@ -16,7 +16,7 @@
 - Deduplicate by PayPal event ID before state changes; apply only monotonic status transitions (no approved/capture replay downgrade).
 - Treat symptom text as untrusted data in AI prompts; never let AI change catalog, price, or payment state.
 - Validate image magic bytes, not only the declared MIME type.
-- Use idempotency keys for order creation and capture; build return/cancel URLs only from the CORS allowlist. Create a fresh order only after an explicit cancel or a pre-approval failure; after an approved capture failure or timeout, reuse and reconcile the same order before retrying.
+- Use idempotency keys for order creation and capture; build return/cancel URLs only from the CORS allowlist. Create a fresh order only after an explicit cancel or a pre-approval failure; after an approved capture failure or timeout, reuse the same order and verify its receipt/order state before retrying. Explicit server-side order reconciliation remains post-hackathon.
 - Do not collect or store card data.
 
 ## API
